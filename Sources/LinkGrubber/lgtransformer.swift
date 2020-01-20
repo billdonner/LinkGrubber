@@ -28,7 +28,7 @@ func kleenURLString(_ url: URLFromString) -> URLFromString?{
         return f.replacingOccurrences(of: ",", with: "!")
     }
 
-open class Fav {
+public class Fav {
    public let name: String
     public let url: String
    public  let comment: String
@@ -40,14 +40,14 @@ open class Fav {
 }
 
 
-open class LgFuncs {
-    open class func isImageExtension (_ s:String) -> Bool {
+public class LgFuncs {
+    public class func isImageExtension (_ s:String) -> Bool {
     ["jpg","jpeg","png"].firstIndex(of: s) != nil
         }
-    open class  func isAudioExtension (_ s:String) -> Bool {
+    public class  func isAudioExtension (_ s:String) -> Bool {
     ["mp3","mpeg","wav"].firstIndex(of: s) != nil
     }
-    open class  func isMarkdownExtension(_ s:String) -> Bool{
+    public class  func isMarkdownExtension(_ s:String) -> Bool{
     ["md", "markdown", "txt", "text"].firstIndex(of: s) != nil
     }
 }
