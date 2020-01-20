@@ -91,7 +91,7 @@ final class Transformer:NSObject {
     let coverArtUrl : String?
     let artist : String
     
-    var  bandSiteParams: BandSiteParams
+    var  bsProt: BandSiteProt
     
     
     func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String, links: inout [LinkElement]) {
@@ -117,16 +117,16 @@ final class Transformer:NSObject {
         }
     }// end of absorbLink
 
-    required  init(artist:String, recordExporter:RecordExporter,
-                   bandSiteParams: BandSiteParams,
+    required  init(artist:String,   recordExporter:RecordExporter,
+                   bandSiteProt: BandSiteProt,
                    specialFolderPaths: [String],
         defaultArtUrl:String? = nil ) {
-        self.bandSiteParams  = bandSiteParams
+        self.bsProt  = bandSiteProt
         self.coverArtUrl = defaultArtUrl
         self.artist = artist
         self.recordExporter = recordExporter
         super.init()
-        cleanOuputs(outpath:bandSiteParams.pathToContentDir,specialFolderPaths: specialFolderPaths)
+        cleanOuputs(outpath:bsProt.pathToContentDir,specialFolderPaths: specialFolderPaths)
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
@@ -161,7 +161,7 @@ final class Transformer:NSObject {
             
             guard playdate != "" else {return}
             
-            let ve =  venue == "" ? bandSiteParams.default_venue_acronym : venue
+            let ve =  venue == "" ? bsProt.venueShort: venue
             let month = playdate.prefix(2)
             let year = playdate.suffix(2)
             
@@ -192,7 +192,7 @@ final class Transformer:NSObject {
         var title: String = ""
         var links : [LinkElement] = []
         
-        guard theURL.absoluteString.hasPrefix(bandSiteParams.matchingURLPrefix.absoluteString) else
+        guard theURL.absoluteString.hasPrefix(bsProt.matchingURLPrefix.absoluteString) else
         {
             return nil
         }

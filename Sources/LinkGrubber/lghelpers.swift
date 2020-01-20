@@ -16,26 +16,18 @@ var consoleIO = ConsoleIO()
 public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
 
 typealias MarkdownMakerSignature = ( PublishingMode,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
-typealias CrawlingSignature =  (String , @escaping (Int)->()) -> ()
 
-protocol   BandSiteProt: class  {
-    var default_venue_acronym : String { get set }
-    var default_venue_description : String { get set }
-    var crawlerKeyTags:[String] { get set }
+
+public protocol   BandSiteProt: class  {
+    var venueShort : String { get set }
+    var venueLong : String { get set }
+    var crawlTags:[String] { get set }
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
     var matchingURLPrefix : URL{ get set }
 }
-open   class BandSiteParams:BandSiteProt {
-    var default_venue_acronym : String = ""
-    var default_venue_description : String  = ""
-    var crawlerKeyTags:[String]  = []
-    var pathToContentDir : String = ""
-    var pathToResourcesDir: String = ""
-    var matchingURLPrefix : URL = URL(string:"")!
-    
-}
-open class Fav {
+
+public class Fav {
     let name: String
     let url: String
     let comment: String
@@ -48,15 +40,13 @@ open class Fav {
 /// add new code to write md files for Publish ing static site
 public enum PublishingMode {
     case fromPublish
-    case fromWithin
+   case fromWithin
    
 }
 
 public enum LoggingLevel {
     case none
-    case verbose
-    
-  
+     case verbose
 }
 struct LocalFilePath {
     private(set) var p : String
@@ -99,13 +89,13 @@ public struct CrawlerStatsBlock:Codable {
         case count2
         case status
     }
-    var added:Int
-    var peak:Int
-    var elapsedSecs:Double
-    var secsPerCycle:Double
-    var count1: Int
-    var count2: Int
-    var status: Int
+    public  var added:Int
+     public var peak:Int
+     public var elapsedSecs:Double
+     public var secsPerCycle:Double
+    public var count1: Int
+    public  var count2: Int
+     public var status: Int
 }
 struct ParseResults {
     let url : URL?
