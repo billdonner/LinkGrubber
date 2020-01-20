@@ -73,7 +73,7 @@ final public class LinkGrubber
 {
     
     private var pageMakerFunc:MarkdownMakerSignature
-    init(pageMakerFunc:@escaping MarkdownMakerSignature) {
+    public init(pageMakerFunc:@escaping MarkdownMakerSignature) {
         self.pageMakerFunc = pageMakerFunc
     }
     

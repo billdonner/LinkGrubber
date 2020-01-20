@@ -15,7 +15,7 @@ var consoleIO = ConsoleIO()
 
 public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
 
-typealias MarkdownMakerSignature = ( Bool,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
+public typealias MarkdownMakerSignature = ( Bool,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
 
 
 public protocol   BandSiteProt: class  {
