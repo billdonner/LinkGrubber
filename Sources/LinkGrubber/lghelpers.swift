@@ -18,7 +18,7 @@ public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
 typealias MarkdownMakerSignature = ( PublishingMode,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
 typealias CrawlingSignature =  (String , @escaping (Int)->()) -> ()
 
-protocol   BandSiteProt {
+protocol   BandSiteProt: class  {
     var default_venue_acronym : String { get set }
     var default_venue_description : String { get set }
     var crawlerKeyTags:[String] { get set }
@@ -26,28 +26,37 @@ protocol   BandSiteProt {
     var pathToResourcesDir: String { get set }
     var matchingURLPrefix : URL{ get set }
 }
-public struct BandSiteParams:BandSiteProt {
-    var default_venue_acronym : String
-    var default_venue_description : String
-    var crawlerKeyTags:[String]
-    var pathToContentDir : String
-    var pathToResourcesDir: String
-    var matchingURLPrefix : URL
+open   class BandSiteParams:BandSiteProt {
+    var default_venue_acronym : String = ""
+    var default_venue_description : String  = ""
+    var crawlerKeyTags:[String]  = []
+    var pathToContentDir : String = ""
+    var pathToResourcesDir: String = ""
+    var matchingURLPrefix : URL = URL(string:"")!
+    
 }
-
+open class Fav {
+    let name: String
+    let url: String
+    let comment: String
+    public init (name:String = "",url:String = "",comment:String = "") {
+        self.name = name
+        self.url = url
+        self.comment = comment
+    }
+}
 /// add new code to write md files for Publish ing static site
 public enum PublishingMode {
     case fromPublish
     case fromWithin
+   
 }
-public struct Fav {
-    let name: String
-    let url: String
-    let comment: String
-}
+
 public enum LoggingLevel {
     case none
     case verbose
+    
+  
 }
 struct LocalFilePath {
     private(set) var p : String
