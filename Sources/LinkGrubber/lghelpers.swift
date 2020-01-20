@@ -15,7 +15,7 @@ var consoleIO = ConsoleIO()
 
 public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
 
-typealias MarkdownMakerSignature = ( PublishingMode,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
+typealias MarkdownMakerSignature = ( Bool,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
 
 
 public protocol   BandSiteProt: class  {
@@ -27,26 +27,11 @@ public protocol   BandSiteProt: class  {
     var matchingURLPrefix : URL{ get set }
 }
 
-public class Fav {
-    let name: String
-    let url: String
-    let comment: String
-    public init (name:String = "",url:String = "",comment:String = "") {
-        self.name = name
-        self.url = url
-        self.comment = comment
-    }
-}
-/// add new code to write md files for Publish ing static site
-public enum PublishingMode {
-    case fromPublish
-   case fromWithin
-   
-}
+
 
 public enum LoggingLevel {
     case none
-     case verbose
+    case verbose
 }
 struct LocalFilePath {
     private(set) var p : String
@@ -79,7 +64,7 @@ protocol Configable:class, Decodable {
     var comment:String {get set}
     func load (url:URL? ) -> ([RootStart])
 }
-public struct CrawlerStatsBlock:Codable {
+open class CrawlerStatsBlock:Codable {
     enum CodingKeys: String, CodingKey {
         case elapsedSecs    = "elapsed-secs"
         case secsPerCycle     = "secs-percycle"
@@ -89,13 +74,31 @@ public struct CrawlerStatsBlock:Codable {
         case count2
         case status
     }
-    public  var added:Int
-     public var peak:Int
-     public var elapsedSecs:Double
-     public var secsPerCycle:Double
-    public var count1: Int
-    public  var count2: Int
-     public var status: Int
+    open  var added:Int
+    open var peak:Int
+    open var elapsedSecs:Double
+    open var secsPerCycle:Double
+    open var count1: Int
+    open  var count2: Int
+    open var status: Int
+    
+    public init (
+        added:Int,
+        peak:Int,
+        elapsedSecs:Double,
+        secsPerCycle:Double,
+        count1: Int,
+        count2: Int,
+        status: Int){
+        self.added = added
+        self.peak = peak
+        self.elapsedSecs = elapsedSecs
+        self.secsPerCycle = secsPerCycle
+        self.count1 = count1
+        self.count2 = count2
+        self.status = status
+    }
+    
 }
 struct ParseResults {
     let url : URL?
@@ -254,8 +257,8 @@ final class ConsoleIO {
         case error
         case standard
     }
-   
-     func writeMessage(_ message: String, to: StreamOutputType = .standard, terminator: String = "\n") {
+    
+    func writeMessage(_ message: String, to: StreamOutputType = .standard, terminator: String = "\n") {
         switch to {
         case .standard:
             print("\(message)",terminator:terminator)
