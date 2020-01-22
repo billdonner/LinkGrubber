@@ -1,5 +1,5 @@
 # LinkGrubber
-0.0.9
+0.1.0
  
 <p align="center">
 <img src="https://billdonner.com/images/fists/fistUp1024x1024.png" width="300" max-width="90%" alt="Publish" />
