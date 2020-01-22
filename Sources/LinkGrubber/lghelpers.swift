@@ -8,6 +8,10 @@
 import Foundation
 import Kanna
 
+struct LinkGrubberHello {
+    var text = "Hello, World!"
+}
+
 var csvOutputStream : FileHandlerOutputStream!
 var jsonOutputStream : FileHandlerOutputStream!
 var traceStream : FileHandlerOutputStream!
@@ -24,6 +28,7 @@ public protocol   BandSiteProt: class  {
     var crawlTags:[String] { get set }
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
+    var pathToOutputDir: String { get set }
     var matchingURLPrefix : URL{ get set }
 }
 
