@@ -10,15 +10,18 @@ import Foundation
 // nothing public here
 
 final class OuterCrawler {
-    private var returnsCrawlResults:ReturnsCrawlResults
+    private var returnsCrawlResults : ReturnsCrawlResults
     private var icrawler : InnerCrawler
     private var crawlStats : CrawlStats
     private var transformer:Transformer
-    private var pageMakerFunc:  MarkdownMakerSignature //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
+    private var pageMakerFunc:  PageMakerFuncSignature //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
+    
+
     
     init(roots:[RootStart],transformer:Transformer,
-         pageMakerFunc: @escaping MarkdownMakerSignature, // Audio(bandfacts: bandSiteParams).makeAudioListMarkdown,
+         pageMakerFunc: @escaping PageMakerFuncSignature, // Audio(bandfacts: bandSiteParams).makeAudioListMarkdown,
          loggingLevel:LoggingLevel,
+         lgFuncs:LgFuncs ,
          returnsResults:@escaping ReturnsCrawlResults)
         throws {
             self.transformer = transformer

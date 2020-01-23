@@ -28,12 +28,12 @@ enum CrawlState {
     case done
     case failed
 }
-struct  RootStart : Codable  {
+public struct  RootStart : Codable  {
     let name: String
     let technique:ParseTechnique
     let urlstr: String
     
-    init(name:String, urlstr:String, technique: ParseTechnique = .passThru){
+    init(name:String, urlstr:String, technique: ParseTechnique  = .parseTop ){
         self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         self.technique = technique; self.urlstr = urlstr;
     }
@@ -118,15 +118,17 @@ final class LimitedWorker {
 }
 
 
-
+enum ParseStatus:Equatable  {
+    case failed(code:Int)
+    case succeeded
+}
 
 private enum ScrapeTechnique {
     case forcedFail
-    case kannaLinksAndElementsCSS
-    case kannaLinksAndElementsPath
+    case normal //was kannlinks...
 }
 enum ParseTechnique :String, Codable {
-    case passThru
+    //case passThru
     case parseTop
     case parseLeaf
     case indexDir
@@ -134,23 +136,22 @@ enum ParseTechnique :String, Codable {
     {
         switch self {
         case .parseTop:
-            return ScrapeTechnique.kannaLinksAndElementsPath
+            return ScrapeTechnique.normal
         case .parseLeaf:
-            return ScrapeTechnique.kannaLinksAndElementsPath
+            return ScrapeTechnique.normal
         case .indexDir:
             return ScrapeTechnique.forcedFail
-        case .passThru:
-            return scrapeTechniqueFor()
+//        case .passThru:
+//            return scrapeTechniqueFor()
         }
     }
 }
 
-
+typealias PageScraperFunc = (ParseTechnique,URL,String)->ParseResults?
+ 
 // scraping is not  Specific to any 3rd party libraries, custom scraping in the custom package
  
 
-typealias PageScraperFunc = (ParseTechnique,URL,String)->ParseResults?
- 
 
 typealias TraceFuncSig =  (String,String?,Bool,Bool) -> ()
 
@@ -177,10 +178,7 @@ struct LinkElement  {
         self.title = title; self.href=URL(string:href,relativeTo:relativeTo); self.linktype=linktype
     }
 }
-enum ParseStatus:Equatable  {
-    case failed(code:Int)
-    case succeeded
-}
+
 struct Props : Codable,Hashable {
     let key: String
     let value: String

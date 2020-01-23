@@ -159,8 +159,8 @@ final class InnerCrawler : NSObject {
             }
         case .indexDir:
             consoleIO.writeMessage("> indexDir support coming soon \(topurlstr)",to:.error)
-        case .passThru:
-            consoleIO.writeMessage("> passthru \(topurlstr)",to:.error)
+//        case .passThru:
+//            consoleIO.writeMessage("> passthru \(topurlstr)",to:.error)
             
         }
     }

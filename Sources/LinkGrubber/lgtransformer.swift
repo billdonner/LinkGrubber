@@ -8,11 +8,9 @@
 
 import Foundation
 import Kanna
- 
+
 let letters = CharacterSet.letters
 let digits = CharacterSet.decimalDigits
-
-
 
 func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
     return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
@@ -24,31 +22,50 @@ func kleenURLString(_ url: URLFromString) -> URLFromString?{
     return URLFromString(newer)
 }
 
-    func kleenex(_ f:String)->String {
-        return f.replacingOccurrences(of: ",", with: "!")
-    }
+func kleenex(_ f:String)->String {
+    return f.replacingOccurrences(of: ",", with: "!")
+}
 
 public class Fav {
-   public let name: String
+    public let name: String
     public let url: String
-   public  let comment: String
+    public  let comment: String
     public init (name:String = "",url:String = "",comment:String = "") {
         self.name = name
         self.url = url
         self.comment = comment
     }
 }
+extension Array where Element == String  {
+    func includes(_ f:Element)->Bool {
+        self.firstIndex(of: f) != nil
+        }
+    }
 
 
 public class LgFuncs {
-    public class func isImageExtension (_ s:String) -> Bool {
-    ["jpg","jpeg","png"].firstIndex(of: s) != nil
-        }
-    public class  func isAudioExtension (_ s:String) -> Bool {
-    ["mp3","mpeg","wav"].firstIndex(of: s) != nil
+    public func isImageExtension (_ s:String) -> Bool {
+        imageExtensions.includes(s)
     }
-    public class  func isMarkdownExtension(_ s:String) -> Bool{
-    ["md", "markdown", "txt", "text"].firstIndex(of: s) != nil
+    public   func isAudioExtension (_ s:String) -> Bool {
+       audioExtensions.includes(s)
+    }
+    public    func isMarkdownExtension(_ s:String) -> Bool{
+        markdownExtensions.includes(s)
+    }
+    
+   private var imageExtensions:[String]
+   private var audioExtensions:[String]
+    private   var markdownExtensions:[String]
+    init(imageExtensions:[String],audioExtensions:[String],markdownExtensions:[String]) {
+        self.imageExtensions = imageExtensions
+        self.audioExtensions = audioExtensions
+        self.markdownExtensions = markdownExtensions
+    }
+    public static  func defaults() -> LgFuncs {
+        return LgFuncs(imageExtensions: ["jpg","jpeg","png"],
+                       audioExtensions: ["mp3","mpeg","wav"],
+                       markdownExtensions: ["md", "markdown", "txt", "text"])
     }
 }
 
@@ -72,44 +89,14 @@ final class  CrawlingElement:Codable {
     }
 }
 
- 
-final class Transformer:NSObject {
- 
-    struct Shredded {
-        let letters: String
-        let digits:String
-    }
 
-    
-  func pickapart(_ phrase:String) -> Shredded {
-     
-    var letterCount = 0
-    var digitCount = 0
-    var lets:String = ""
-    var digs:String = ""
-    
-    for uni in phrase.unicodeScalars  {
-        if letters.contains(uni) {
-            letterCount += 1
-            lets += String(uni)
-        } else if digits.contains(uni) {
-            digitCount += 1
-            digs += String(uni)
-        }
-    }
-    return Shredded(letters:lets, digits:digs)
-}
- 
+final class Transformer:NSObject {
+    var lgFuncs:LgFuncs
     var recordExporter : RecordExporter!
     var cont = CrawlingElement()
-                             
     var firstTime = true
-    let coverArtUrl : String?
-    let artist : String
-    
-    var  bsProt: BandSiteProt
-    
-    
+    var bsProt: BandSiteProt&FileSiteProt
+     
     func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String, links: inout [LinkElement]) {
         if let lk = href, //link["href"] ,
             let url = URL(string:lk,relativeTo:relativeTo) ,
@@ -132,24 +119,20 @@ final class Transformer:NSObject {
             }
         }
     }// end of absorbLink
-
-    required  init(artist:String,   recordExporter:RecordExporter,
-                   bandSiteProt: BandSiteProt,
-                   specialFolderPaths: [String],
-        defaultArtUrl:String? = nil ) {
+    
+    required  init( recordExporter:RecordExporter,  bandSiteProt: BandSiteProt&FileSiteProt , lgFuncs:LgFuncs) {
         self.bsProt  = bandSiteProt
-        self.coverArtUrl = defaultArtUrl
-        self.artist = artist
+        self.lgFuncs = lgFuncs
         self.recordExporter = recordExporter
         super.init()
-        cleanOuputs(outpath:bsProt.pathToContentDir,specialFolderPaths: specialFolderPaths)
+        cleanOuputs(baseFolderPath:bsProt.pathToContentDir,folderPaths: bsProt.specialFolderPaths)
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
         print("[crawler] finalized csv and json streams")
     }
     
-    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:MarkdownMakerSignature) throws {
+    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFuncSignature) throws {
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
@@ -159,8 +142,7 @@ final class Transformer:NSObject {
                 cont.albumurl = url.absoluteString
                 cont.name = link.title
                 cont.songurl = href
-                cont.artist = artist
-                cont.cover_art_url = self.coverArtUrl
+                cont.cover_art_url = self.bsProt.coverArtURL
                 mdlinks.append(Fav(name:cont.name ?? "??", url:cont.songurl,comment:""))
                 recordExporter.addRowToExportStream(cont: cont)
             }
@@ -168,47 +150,18 @@ final class Transformer:NSObject {
         
         // if we are writing md files for Publish
         if let aurl = cont.albumurl {
-            // figure out venue and playdate from the url
-            
-            let fund = url.lastPathComponent
-            let shredded = pickapart(fund)
-            let playdate = shredded.digits
-            let venue = shredded.letters
-            
-            guard playdate != "" else {return}
-            
-            let ve =  venue == "" ? bsProt.venueShort: venue
-            let month = playdate.prefix(2)
-            let year = playdate.suffix(2)
-            
-            let start = playdate.index(playdate.startIndex, offsetBy: 2)
-            let end = playdate.index(playdate.endIndex, offsetBy: -2)
-            
-            let day = playdate[start..<end]
-            
-            // when naming the file, put the date part first and then the venu, the date is YYMMDD for sorting
-           
-           // try Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
-            
-            
-//            try pageMakerFunc(mode: .fromPublish, url:aurl,
-//                                      title: "\(playdate)\(venue)",
-//                                        tags:["audio"],
-//                                        p1: ve,
-//                                        p2: String(year+month+day),
-//                                      links:mdlinks )
-            //.fromPublish
-            try pageMakerFunc(  true,  aurl,    "\(playdate)\(venue)",  ["audio"],      ve,  String(year+month+day),  mdlinks )
+
+            try pageMakerFunc( false, aurl, cont.name ?? "???",pr.tags,mdlinks)
         }//writemdfiles==true
     }//incorporateParseResults
-
+    
     
     func scraper(_ parseTechnique:ParseTechnique, url theURL:URL,  html: String)   -> ParseResults? {
         
         var title: String = ""
         var links : [LinkElement] = []
         
-        guard theURL.absoluteString.hasPrefix(bsProt.matchingURLPrefix.absoluteString) else
+        guard theURL.absoluteString.hasPrefix(bsProt.matchingURLPrefix) else
         {
             return nil
         }
@@ -217,7 +170,7 @@ final class Transformer:NSObject {
             recordExporter.addHeaderToExportStream()
             firstTime = false
         }
-         
+        
         do {
             assert(html.count != 0 , "No html to parse")
             let doc = try  Kanna.HTML(html: html, encoding: .utf8)
@@ -233,8 +186,8 @@ final class Transformer:NSObject {
             case .indexDir:
                 fatalError("forcedFailure induced")
                 break;
-            case .passThru:
-                fatalError("forcedFailure induced")
+//            case .passThru:
+//                fatalError("forcedFailure induced")
             }
         }
         catch {
@@ -261,10 +214,10 @@ extension Transformer {
         }
         
         if hasextension {
-            guard LgFuncs.isImageExtension(pext) || LgFuncs.isAudioExtension(pext) else {
+            guard lgFuncs.isImageExtension(pext) || lgFuncs.isAudioExtension(pext) else {
                 return nil
             }
-            if LgFuncs.isImageExtension(pext) || LgFuncs.isMarkdownExtension(pext) {
+            if lgFuncs.isImageExtension(pext) || lgFuncs.isMarkdownExtension(pext) {
                 print("Processing \(pext) file from \(url)")
             }
         } else
@@ -275,14 +228,14 @@ extension Transformer {
     }
     
     //MARK: - cleanup special folders for this site
-    func cleanOuputs(outpath:String,specialFolderPaths:[String]) {
+    func cleanOuputs(baseFolderPath:String,folderPaths:[String]) {
         do {
             // clear the output directory
             let fm = FileManager.default
             var counter = 0
-            for folder in specialFolderPaths{
+            for folder in folderPaths{
                 
-                let dir = URL(fileURLWithPath:outpath+folder)
+                let dir = URL(fileURLWithPath:baseFolderPath+folder)
                 
                 let furls = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
                 for furl in furls {
@@ -290,9 +243,9 @@ extension Transformer {
                     counter += 1
                 }
             }
-            print("[crawler] Cleaned \(counter) files from ", outpath )
+            print("[crawler] Cleaned \(counter) files from ", baseFolderPath )
         }
         catch {print("[crawler] Could not clean outputs \(error)")}
     }
 }
- 
+

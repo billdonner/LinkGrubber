@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Kanna
+ 
 
 struct LinkGrubberHello {
     var text = "Hello, World!"
@@ -19,17 +19,22 @@ var consoleIO = ConsoleIO()
 
 public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
 
-public typealias MarkdownMakerSignature = ( Bool,   String,   String,   [String],   String, String, [Fav] ) throws -> ()
+public typealias PageMakerFuncSignature = (_  mode:Bool, _ url:String, _ title:String,  _ tags:[String], _ links: [Fav] ) throws -> ()
 
 
 public protocol   BandSiteProt: class  {
+    var artist : String { get set }
     var venueShort : String { get set }
     var venueLong : String { get set }
+    var coverArtURL : String { get set }
     var crawlTags:[String] { get set }
+}
+public protocol   FileSiteProt: class {
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
     var pathToOutputDir: String { get set }
-    var matchingURLPrefix : URL{ get set }
+    var matchingURLPrefix : String { get set }
+    var specialFolderPaths: [String]{ get set }
 }
 
 
@@ -272,58 +277,7 @@ final class ConsoleIO {
         }
     }
 }
-
-final  class ConfigurationProcessor :Configable {
-    
-    enum CodingKeys: String, CodingKey {
-        case comment
-        case roots
-    }
-    
-    var comment: String = "<no comment>"
-    var roots:[String] = []
-    var crawlStarts:[RootStart] = []
-    
-    
-    func load (url:URL? = nil) -> ([RootStart]) {
-        do {
-            let obj =    try configLoader(url!)
-            return (convertToRootStarts(obj: obj))
-        }
-        catch {
-            invalidCommand(550); exit(0)
-        }
-    }
-    func configLoader (_ configURL:URL) throws -> ConfigurationProcessor {
-        do {
-            let contents =  try Data.init(contentsOf: configURL)
-            // inner
-            do {
-                let    obj = try JSONDecoder().decode(ConfigurationProcessor.self, from: contents)
-                return obj
-            }
-            catch {
-                exitWith(503,error: error)
-            }
-            // end inner
-        }
-        catch {
-            exitWith(504,error: error)
-        }// outer
-        fatalError("should never get here")
-    }
-    func convertToRootStarts(obj:ConfigurationProcessor) -> ([RootStart]){
-        var toots:[RootStart] = []
-        for root in obj.roots{
-            toots.append(RootStart(name:root.components(separatedBy: ".").last ?? "?root?",
-                                   urlstr:root,
-                                   technique: .parseTop))
-        }
-        crawlStarts = toots
-        return (toots)
-    }
-}
-// was runstats
+//
 final class CrawlStats:NSObject {
     
     var transformer:Transformer
@@ -356,3 +310,55 @@ final class CrawlStats:NSObject {
         reset()
     }
 }
+
+//final  class OnDiskCrawlConfig :Configable {
+//
+//    enum CodingKeys: String, CodingKey {
+//        case comment
+//        case roots
+//    }
+//
+//    var comment: String = "<no comment>"
+//    var roots:[RootStart] = []
+//    var crawlStarts:[RootStart] = []
+//
+//
+//    func load (url:URL? = nil) -> ([RootStart]) {
+//        do {
+//            let obj =    try configLoader(url!)
+//            return (convertToRootStarts(obj: obj))
+//        }
+//        catch {
+//            invalidCommand(550); exit(0)
+//        }
+//    }
+//    func configLoader (_ configURL:URL) throws -> OnDiskCrawlConfig {
+//        do {
+//            let contents =  try Data.init(contentsOf: configURL)
+//            // inner
+//            do {
+//                let    obj = try JSONDecoder().decode(OnDiskCrawlConfig.self, from: contents)
+//                return obj
+//            }
+//            catch {
+//                exitWith(503,error: error)
+//            }
+//            // end inner
+//        }
+//        catch {
+//            exitWith(504,error: error)
+//        }// outer
+//        fatalError("should never get here")
+//    }
+//    func convertToRootStarts(obj:OnDiskCrawlConfig) -> ([RootStart]){
+//        var toots:[RootStart] = []
+//        for root in obj.roots{
+//            toots.append(RootStart(name:root.components(separatedBy: ".").last ?? "?root?",
+//                                   urlstr:root,
+//                                   technique: .parseTop))
+//        }
+//        crawlStarts = toots
+//        return (toots)
+//    }
+//}
+//// was runstats
