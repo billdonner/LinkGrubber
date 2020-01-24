@@ -13,7 +13,8 @@ import Foundation
 import func Darwin.fputs
 import var Darwin.stderr
 
-typealias ReturnsCrawlStats = (CrawlStats)->()
+public typealias  ReturnsGrubberStats = (LinkGrubberStats)->()
+typealias ReturnsCrawlStats = (KrawlingInfo)->()
 typealias ReturnsParseResults =  (ParseResults)->()
 typealias ReturnsLinkElement = (LinkElement)->()
 
@@ -204,7 +205,7 @@ struct TestResultsBlock:Codable {
     var rootcrawlpoints:[String]? = []
     var command:[String] = []
     var reportTitle:String = ""
-    var crawlStats:CrawlerStatsBlock?
+    var crawlStats:LinkGrubberStats?
     var crawlerStarted: String =  ""
     
 }

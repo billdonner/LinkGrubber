@@ -7,7 +7,6 @@
 
 import Foundation
  
-
 struct LinkGrubberHello {
     var text = "Hello, World!"
 }
@@ -17,18 +16,9 @@ var jsonOutputStream : FileHandlerOutputStream!
 var traceStream : FileHandlerOutputStream!
 var consoleIO = ConsoleIO()
 
-public typealias  ReturnsCrawlResults = (CrawlerStatsBlock)->()
-
 public typealias PageMakerFuncSignature = (_  mode:Bool, _ url:String, _ title:String,  _ tags:[String], _ links: [Fav] ) throws -> ()
 
 
-public protocol   BandSiteProt: class  {
-    var artist : String { get set }
-    var venueShort : String { get set }
-    var venueLong : String { get set }
-    var coverArtURL : String { get set }
-    var crawlTags:[String] { get set }
-}
 public protocol   FileSiteProt: class {
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
@@ -36,8 +26,6 @@ public protocol   FileSiteProt: class {
     var matchingURLPrefix : String { get set }
     var specialFolderPaths: [String]{ get set }
 }
-
-
 
 public enum LoggingLevel {
     case none
@@ -69,12 +57,40 @@ public func invalidCommand(_ code:Int) {
         """)
     exit(0)
 }
-protocol Configable:class, Decodable {
+
+final class KrawlingInfo:NSObject {
+ 
+    var keyCounts:NSCountedSet!
+    var goodurls :Set<URLFromString>!
+    var badurls :Set<URLFromString>!
     
-    var comment:String {get set}
-    func load (url:URL? ) -> ([RootStart])
+    // dont let an item get on both lists
+    func addBonusKey(_ s:String) {
+        keyCounts.add(s)
+    }
+    func addStatsGoodCrawlRoot(urlstr:URLFromString) {
+        let part  =  partFromUrlstr(urlstr)
+        goodurls.insert(part )
+        if badurls.contains(part)   { badurls.remove(part) }
+    }
+    func addStatsBadCrawlRoot(urlstr:URLFromString) {
+        let part  =  partFromUrlstr(urlstr)
+        if goodurls.contains(part)   { return }
+        badurls.insert(part)
+    }
+    func reset() {
+        goodurls = Set<URLFromString>()
+        badurls = Set<URLFromString>()
+        keyCounts = NSCountedSet()
+    }
+    
+    override init( ) {
+        super.init()
+        reset()
+    }
 }
-open class CrawlerStatsBlock:Codable {
+
+open class LinkGrubberStats:Codable {
     enum CodingKeys: String, CodingKey {
         case elapsedSecs    = "elapsed-secs"
         case secsPerCycle     = "secs-percycle"
@@ -138,21 +154,7 @@ struct ParseResults {
 }
 
 
-enum OutputType: String {
-    case csv = "csv"
-    case json = "json"
-    case text = "text"
-    case unknown
-    
-    init(value: String) {
-        switch value {
-        case "csv": self = .csv
-        case "json": self = .json
-        case "text": self = .text
-        default: self = .unknown
-        }
-    }
-}
+
 /*
  
  build either csv or json export stream
@@ -277,88 +279,3 @@ final class ConsoleIO {
         }
     }
 }
-//
-final class CrawlStats:NSObject {
-    
-    var transformer:Transformer
-    var keyCounts:NSCountedSet!
-    var goodurls :Set<URLFromString>!
-    var badurls :Set<URLFromString>!
-    
-    // dont let an item get on both lists
-    func addBonusKey(_ s:String) {
-        keyCounts.add(s)
-    }
-    func addStatsGoodCrawlRoot(urlstr:URLFromString) {
-        let part  =  partFromUrlstr(urlstr)
-        goodurls.insert(part )
-        if badurls.contains(part)   { badurls.remove(part) }
-    }
-    func addStatsBadCrawlRoot(urlstr:URLFromString) {
-        let part  =  partFromUrlstr(urlstr)
-        if goodurls.contains(part)   { return }
-        badurls.insert(part)
-    }
-    func reset() {
-        goodurls = Set<URLFromString>()
-        badurls = Set<URLFromString>()
-        keyCounts = NSCountedSet()
-    }
-    init(transformer :Transformer) {
-        self.transformer = transformer
-        super.init()
-        reset()
-    }
-}
-
-//final  class OnDiskCrawlConfig :Configable {
-//
-//    enum CodingKeys: String, CodingKey {
-//        case comment
-//        case roots
-//    }
-//
-//    var comment: String = "<no comment>"
-//    var roots:[RootStart] = []
-//    var crawlStarts:[RootStart] = []
-//
-//
-//    func load (url:URL? = nil) -> ([RootStart]) {
-//        do {
-//            let obj =    try configLoader(url!)
-//            return (convertToRootStarts(obj: obj))
-//        }
-//        catch {
-//            invalidCommand(550); exit(0)
-//        }
-//    }
-//    func configLoader (_ configURL:URL) throws -> OnDiskCrawlConfig {
-//        do {
-//            let contents =  try Data.init(contentsOf: configURL)
-//            // inner
-//            do {
-//                let    obj = try JSONDecoder().decode(OnDiskCrawlConfig.self, from: contents)
-//                return obj
-//            }
-//            catch {
-//                exitWith(503,error: error)
-//            }
-//            // end inner
-//        }
-//        catch {
-//            exitWith(504,error: error)
-//        }// outer
-//        fatalError("should never get here")
-//    }
-//    func convertToRootStarts(obj:OnDiskCrawlConfig) -> ([RootStart]){
-//        var toots:[RootStart] = []
-//        for root in obj.roots{
-//            toots.append(RootStart(name:root.components(separatedBy: ".").last ?? "?root?",
-//                                   urlstr:root,
-//                                   technique: .parseTop))
-//        }
-//        crawlStarts = toots
-//        return (toots)
-//    }
-//}
-//// was runstats

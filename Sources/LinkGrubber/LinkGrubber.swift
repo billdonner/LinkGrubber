@@ -14,7 +14,7 @@ fileprivate class KrawlStream : NSObject {
     var roots: [RootStart]
     var logLevel:LoggingLevel
     var transformer:Transformer
-    var crawlStats:CrawlStats
+    var crawlStats:KrawlingInfo
     var pageMakerFunc:PageMakerFuncSignature
     var lgFuncs:LgFuncs
     
@@ -31,7 +31,7 @@ fileprivate class KrawlStream : NSObject {
         self.roots = roots
         self.lgFuncs = lgFuncs
         self.logLevel = logLevel
-        self.crawlStats = CrawlStats(transformer: self.transformer)
+        self.crawlStats = KrawlingInfo()
         bootstrapExportDir()
         
         do {
@@ -60,7 +60,7 @@ fileprivate class KrawlStream : NSObject {
     
     func startCrawling( roots:[RootStart],
                         loggingLevel:LoggingLevel,
-                        finally:@escaping ReturnsCrawlResults) {
+                        finally:@escaping ReturnsGrubberStats) {
         
         do {
             let _ = try OuterCrawler (roots: roots,transformer:transformer,pageMakerFunc: pageMakerFunc,
@@ -92,16 +92,16 @@ final public class LinkGrubber
     public  func grub(
                       roots:[RootStart],
                       opath:String,
-                      params: BandSiteProt&FileSiteProt,
+                      params: FileSiteProt,
                       logLevel:LoggingLevel,
                       lgFuncs : LgFuncs =  .defaults(),
-                      finally:@escaping ReturnsCrawlResults) throws {
+                      finally:@escaping ReturnsGrubberStats) throws {
         
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
             else {  fatalError("cant fix outpath") }
         
         let transformer =  Transformer(recordExporter:recordExporter,
-                               bandSiteProt: params,
+                               fsProt: params,
                                lgFuncs:  lgFuncs)
         
         let rm = KrawlStream(roots:roots,

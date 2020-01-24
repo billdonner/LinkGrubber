@@ -9,24 +9,25 @@ import Foundation
 
 // nothing public here
 
+
 final class OuterCrawler {
-    private var returnsCrawlResults : ReturnsCrawlResults
+    private var returnsCrawlResults : ReturnsGrubberStats
     private var icrawler : InnerCrawler
-    private var crawlStats : CrawlStats
+    private var krawlInfo : KrawlingInfo
     private var transformer:Transformer
     private var pageMakerFunc:  PageMakerFuncSignature //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
     
 
     
     init(roots:[RootStart],transformer:Transformer,
-         pageMakerFunc: @escaping PageMakerFuncSignature, // Audio(bandfacts: bandSiteParams).makeAudioListMarkdown,
+         pageMakerFunc: @escaping PageMakerFuncSignature,
          loggingLevel:LoggingLevel,
          lgFuncs:LgFuncs ,
-         returnsResults:@escaping ReturnsCrawlResults)
+         returnsResults:@escaping ReturnsGrubberStats)
         throws {
             self.transformer = transformer
             self.pageMakerFunc = pageMakerFunc
-            self.crawlStats = CrawlStats(transformer:transformer)
+            self.krawlInfo = KrawlingInfo()
             self.returnsCrawlResults = returnsResults
             let lk = ScrapingMachine(scraper: transformer.scraper)
             // we start the inner crawler right here
@@ -52,19 +53,19 @@ final class OuterCrawler {
         // let baseurltag = (icrawler.baseURL != nil) ?  icrawler.baseURL!.absoluteString : "baseurl fail" //XXXXXXXX
         print("[crawler] starting \(startTime), root \(roots[0].urlstr) please be patient")
         
-        icrawler.bigCrawlLoop( crawlStats: crawlStats, exportOnePageWorth: onepageworth) {
+        icrawler.bigCrawlLoop( crawlStats: krawlInfo, exportOnePageWorth: onepageworth) {
             _ in
             // finally finished !
             
             let (count,peak) = self.icrawler.crawlingStats()
             let crawltime = Date().timeIntervalSince(startTime)
             
-            self.finalSummary(stats: self.crawlStats,
+            self.finalSummary(stats: self.krawlInfo,
                               count:count,
                               peak:peak,
                               crawltime:crawltime)
             
-            let crawlResults = CrawlerStatsBlock(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:crawltime/Double(count), count1: self.crawlStats.goodurls.count, count2:self.crawlStats.badurls.count, status:200)
+            let crawlResults = LinkGrubberStats(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:crawltime/Double(count), count1: self.krawlInfo.goodurls.count, count2:self.krawlInfo.badurls.count, status:200)
             /// this is where we will finally wind up, need to call the user routine that was i
             
             self.returnsCrawlResults(crawlResults)
@@ -72,7 +73,7 @@ final class OuterCrawler {
         }
     }
     
-    private   func finalSummary (stats:CrawlStats, count:Int,peak:Int,crawltime:TimeInterval) {
+    private   func finalSummary (stats:KrawlingInfo, count:Int,peak:Int,crawltime:TimeInterval) {
         // copy into  TestResultsBlock
         var fb = TestResultsBlock()
         fb.reportTitle = "Crawl Summary"
@@ -85,8 +86,8 @@ final class OuterCrawler {
         let percycle = count <= 0 ? 0.0 : (crawltime / Double(count))
         
         
-        let statsblock = CrawlerStatsBlock(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:percycle,
-                                           count1: self.crawlStats.goodurls.count, count2:self.crawlStats.badurls.count,
+        let statsblock = LinkGrubberStats(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:percycle,
+                                           count1: self.krawlInfo.goodurls.count, count2:self.krawlInfo.badurls.count,
                                            status:200)
         
         fb .crawlStats = statsblock

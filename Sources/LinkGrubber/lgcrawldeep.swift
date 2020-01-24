@@ -47,7 +47,7 @@ import Foundation
     }
     
     
-    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: CrawlStats, innerCrawler:InnerCrawler,    didFinishUserCall: inout Bool,  savedExportOne: @escaping  ReturnsParseResults) {
+    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,    didFinishUserCall: inout Bool,  savedExportOne: @escaping  ReturnsParseResults) {
         while crawlState == .crawling {
             if items.count == 0 {
                 crawlState = .done
@@ -92,7 +92,7 @@ final class InnerCrawler : NSObject {
     func addToCrawlList(_ f:URL ) {
         ct.addToListUnquely(f)
     }
-    func crawlDone( _ crawlerContext: CrawlStats, _ didFinishUserCall: inout Bool, _ finally: ReturnsCrawlStats) {
+    func crawlDone( _ crawlerContext: KrawlingInfo, _ didFinishUserCall: inout Bool, _ finally: ReturnsCrawlStats) {
         // here we should output the very last trailer record
         //        print("calling whendone from crawldone from crawlingcore with crawlcontext \(crawlerContext)  ")
         finally( crawlerContext)// everything alreadt passed
@@ -100,7 +100,7 @@ final class InnerCrawler : NSObject {
     }
     
     
-    func crawlOne(rootURL:URL,technique:ParseTechnique,stats:CrawlStats,exportone:@escaping (ReturnsParseResults)) {
+    func crawlOne(rootURL:URL,technique:ParseTechnique,stats:KrawlingInfo,exportone:@escaping (ReturnsParseResults)) {
         
         // this is really where the action starts, we crawl from RootStart
         
@@ -165,7 +165,7 @@ final class InnerCrawler : NSObject {
         }
     }
     
-    func bigCrawlLoop(crawlStats:CrawlStats, exportOnePageWorth:@escaping ReturnsParseResults, finally:@escaping ReturnsCrawlStats) {
+    func bigCrawlLoop(crawlStats:KrawlingInfo, exportOnePageWorth:@escaping ReturnsParseResults, finally:@escaping ReturnsCrawlStats) {
         
         var didFinishUserCall = false
         var savedExportOne = exportOnePageWorth

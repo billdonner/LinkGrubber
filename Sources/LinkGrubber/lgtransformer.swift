@@ -95,7 +95,7 @@ final class Transformer:NSObject {
     var recordExporter : RecordExporter!
     var cont = CrawlingElement()
     var firstTime = true
-    var bsProt: BandSiteProt&FileSiteProt
+    var fsProt: FileSiteProt
      
     func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String, links: inout [LinkElement]) {
         if let lk = href, //link["href"] ,
@@ -120,19 +120,19 @@ final class Transformer:NSObject {
         }
     }// end of absorbLink
     
-    required  init( recordExporter:RecordExporter,  bandSiteProt: BandSiteProt&FileSiteProt , lgFuncs:LgFuncs) {
-        self.bsProt  = bandSiteProt
+    required  init( recordExporter:RecordExporter,  fsProt: FileSiteProt , lgFuncs:LgFuncs) {
+        self.fsProt  = fsProt
         self.lgFuncs = lgFuncs
         self.recordExporter = recordExporter
         super.init()
-        cleanOuputs(baseFolderPath:bsProt.pathToContentDir,folderPaths: bsProt.specialFolderPaths)
+        cleanOuputs(baseFolderPath:fsProt.pathToContentDir,folderPaths: fsProt.specialFolderPaths)
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
         print("[crawler] finalized csv and json streams")
     }
     
-    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFuncSignature) throws {
+    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFuncSignature,imgurl:String="") throws {
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
@@ -142,7 +142,7 @@ final class Transformer:NSObject {
                 cont.albumurl = url.absoluteString
                 cont.name = link.title
                 cont.songurl = href
-                cont.cover_art_url = self.bsProt.coverArtURL
+                cont.cover_art_url = ""
                 mdlinks.append(Fav(name:cont.name ?? "??", url:cont.songurl,comment:""))
                 recordExporter.addRowToExportStream(cont: cont)
             }
@@ -150,6 +150,17 @@ final class Transformer:NSObject {
         
         // if we are writing md files for Publish
         if let aurl = cont.albumurl {
+            // figure out the coverarturl here, either take the default for the bandsite or take the first one in the mdlinks
+            for alink in mdlinks {
+               let x =  alink.url.components(separatedBy: ".").last ?? "fail"
+                if lgFuncs.isImageExtension(x) {
+                    cont.cover_art_url = alink.url
+                    break
+                }
+            }
+            if cont.cover_art_url == "" {
+                cont.cover_art_url = imgurl
+            }
 
             try pageMakerFunc( false, aurl, cont.name ?? "???",pr.tags,mdlinks)
         }//writemdfiles==true
@@ -161,7 +172,7 @@ final class Transformer:NSObject {
         var title: String = ""
         var links : [LinkElement] = []
         
-        guard theURL.absoluteString.hasPrefix(bsProt.matchingURLPrefix) else
+        guard theURL.absoluteString.hasPrefix(fsProt.matchingURLPrefix) else
         {
             return nil
         }
