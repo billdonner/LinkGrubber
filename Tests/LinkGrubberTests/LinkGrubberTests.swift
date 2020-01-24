@@ -2,13 +2,6 @@ import XCTest
 @testable import LinkGrubber
 
 final class LinkGrubberTests: XCTestCase {
-    
- 
-//        var artist : String = ""
-//        var venueShort : String  = ""
-//        var venueLong : String  = ""
-//        var coverArtURL : String  = ""
-//        var crawlTags:[String] = []
        class TestParams: FileSiteProt {
         var pathToContentDir : String  = ""
         var pathToResourcesDir: String  = ""
