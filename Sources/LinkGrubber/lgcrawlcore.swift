@@ -156,12 +156,12 @@ typealias PageScraperFunc = (ParseTechnique,URL,String)->ParseResults?
 
 typealias TraceFuncSig =  (String,String?,Bool,Bool) -> ()
 
-enum Linktype {
+public enum Linktype {
     case leaf
     case hyperlink
 }
 
-struct LinkElement  {
+public struct LinkElement  {
     let title: String
     let href: URL?
     let linktype: Linktype
@@ -175,15 +175,15 @@ struct LinkElement  {
         }
     }
     // when a LinkElement is creted, it tries to make a url from the supplied string
-    init(title:String,href:String,linktype:Linktype,relativeTo:URL?) {
+   public init(title:String,href:String,linktype:Linktype,relativeTo:URL?) {
         self.title = title; self.href=URL(string:href,relativeTo:relativeTo); self.linktype=linktype
     }
 }
 
-struct Props : Codable,Hashable {
-    let key: String
-    let value: String
-    init(key:String,value:String) {
+public struct Props : Codable,Hashable {
+    var key: String
+    var value: String
+    public init(key:String,value:String) {
         self.key = key
         self.value = value
     }

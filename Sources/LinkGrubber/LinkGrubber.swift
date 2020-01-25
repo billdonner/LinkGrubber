@@ -94,7 +94,7 @@ final public class LinkGrubber
                       opath:String,
                       params: FileSiteProt,
                       logLevel:LoggingLevel,
-                      lgFuncs : LgFuncs =  .defaults(),
+                      lgFuncs : LgFuncs,
                       finally:@escaping ReturnsGrubberStats) throws {
         
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString

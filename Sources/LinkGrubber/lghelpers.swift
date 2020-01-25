@@ -6,7 +6,7 @@
 //
 
 import Foundation
- 
+
 struct LinkGrubberHello {
     var text = "Hello, World!"
 }
@@ -25,9 +25,9 @@ public struct CustomPageProps {
     public var tags: [String]
     
     public init (  isInternalPage: Bool,
-  urlstr: String,
- title: String,
- tags: [String]){
+                   urlstr: String,
+                   title: String,
+                   tags: [String]){
         self.isInternalPage = isInternalPage
         self.urlstr = urlstr
         self.title = title
@@ -76,7 +76,7 @@ public func invalidCommand(_ code:Int) {
 }
 
 final class KrawlingInfo:NSObject {
- 
+    
     var keyCounts:NSCountedSet!
     var goodurls :Set<URLFromString>!
     var badurls :Set<URLFromString>!
@@ -185,7 +185,7 @@ final class RecordExporter {
         return  "Name,Artist,Album,SongURL,AlbumURL,CoverArtURL"
     }
     func mskecsvtrailer( ) -> String?  {
-        return    "==CrawlingContext=="
+        return    nil
     }
     func makecsvrow(cont:CrawlingElement) -> String {
         
@@ -217,9 +217,8 @@ final class RecordExporter {
         if let trailer =  mskecsvtrailer() {
             print(trailer , to: &csvOutputStream )
         }
-        
         emitToJSONStream("""
-}
+]
 """)
     }
     func addRowToExportStream(cont:CrawlingElement) {
