@@ -30,9 +30,9 @@ enum CrawlState {
     case failed
 }
 public struct  RootStart : Codable  {
-    let name: String
-    let technique:ParseTechnique
-    let urlstr: String
+    public let name: String
+     public let technique:ParseTechnique
+    public    let urlstr: String
     
     public init(name:String, urlstr:String, technique: ParseTechnique  = .parseTop ){
         self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
