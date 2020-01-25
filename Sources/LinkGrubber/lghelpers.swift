@@ -19,11 +19,13 @@ var consoleIO = ConsoleIO()
 public typealias PageMakerFunc = (_ props:CustomPageProps,  _ links: [Fav] ) throws -> ()
 
 public struct CustomPageProps {
-  public  let isInternalPage: Bool
-  public    let urlstr: String
- public     let title: String
-  public    let tags: [String]
+    public var isInternalPage: Bool
+    public var urlstr: String
+    public var title: String
+    public var tags: [String]
 }
+
+
 public protocol   FileSiteProt: class {
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
