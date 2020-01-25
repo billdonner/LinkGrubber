@@ -25,7 +25,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"1/2 dead", urlstr:"https://billdonner.com/linkgrubber/empty-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none)
+                      logLevel:.none, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -47,7 +47,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"1/2 dead", urlstr:"https://billdonner.com/linkgrubber/zero-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none)
+                      logLevel:.none, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -67,7 +67,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"1/2 dead", urlstr:"https://billdonner.com/linkgrubber/one-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none)
+                      logLevel:.none, lgFuncs:defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -86,7 +86,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"1/2 dead", urlstr:"https://billdonner.com/linkgrubber/two-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none)
+                      logLevel:.none, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -97,7 +97,17 @@ final class LinkGrubberTests: XCTestCase {
     }
     
 // test params
+    func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, title: String , links:inout [LinkElement]) throws -> String {
+        print("linkgrubber.defaults",url,title)
+        return "linkgrubber.defaults()"
+    }
 
+ func defaults() -> LgFuncs {
+   
+         return LgFuncs(imageExtensions: ["jpg","jpeg","png"],
+                        audioExtensions: ["mp3","mpeg","wav"],
+                        markdownExtensions: ["md", "markdown", "txt", "text"], scrapeAndAbsorbFunc: testscraperfunc)
+     }
 
     static var allTests = [
     ("testGrubber", testGrubber),

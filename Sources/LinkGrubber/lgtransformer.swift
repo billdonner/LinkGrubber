@@ -35,7 +35,7 @@ extension Array where Element == String  {
         }
     }
 
-typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,  String , inout [LinkElement]) throws -> String
+public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,  String , inout [LinkElement]) throws -> String
 public class LgFuncs {
     public func isImageExtension (_ s:String) -> Bool {
         imageExtensions.includes(s)
@@ -52,7 +52,7 @@ public class LgFuncs {
    private var markdownExtensions:[String]
    private(set) var scrapeRestore:ScrapeAndAbsorbFunc
     
-    init(imageExtensions:[String],audioExtensions:[String],markdownExtensions:[String],scrapeAndAbsorbFunc:@escaping ScrapeAndAbsorbFunc) {
+   public init(imageExtensions:[String],audioExtensions:[String],markdownExtensions:[String],scrapeAndAbsorbFunc:@escaping ScrapeAndAbsorbFunc) {
         self.imageExtensions = imageExtensions
         self.audioExtensions = audioExtensions
         self.markdownExtensions = markdownExtensions
