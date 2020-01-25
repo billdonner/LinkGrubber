@@ -7,7 +7,7 @@
 //  Copyright © 2019 midnightrambler. All rights reserved.
 //
 //
-import Kanna
+
 import Foundation
 
 import func Darwin.fputs
@@ -34,7 +34,7 @@ public struct  RootStart : Codable  {
     let technique:ParseTechnique
     let urlstr: String
     
-    init(name:String, urlstr:String, technique: ParseTechnique  = .parseTop ){
+    public init(name:String, urlstr:String, technique: ParseTechnique  = .parseTop ){
         self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         self.technique = technique; self.urlstr = urlstr;
     }
@@ -128,7 +128,7 @@ private enum ScrapeTechnique {
     case forcedFail
     case normal //was kannlinks...
 }
-enum ParseTechnique :String, Codable {
+public enum ParseTechnique :String, Codable {
     //case passThru
     case parseTop
     case parseLeaf

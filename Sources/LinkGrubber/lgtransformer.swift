@@ -9,8 +9,7 @@
 import Foundation
 import Kanna
 
-let letters = CharacterSet.letters
-let digits = CharacterSet.decimalDigits
+
 
 func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
     return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
@@ -132,7 +131,7 @@ final class Transformer:NSObject {
         print("[crawler] finalized csv and json streams")
     }
     
-    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFuncSignature,imgurl:String="") throws {
+    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFunc,imgurl:String="") throws {
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
@@ -191,7 +190,10 @@ final class Transformer:NSObject {
                 
             case .parseTop,.parseLeaf:
                 for link in doc.xpath("//a") {
-                    absorbLink(href:link["href"],txt:link.text,relativeTo:theURL, tag: "media",links:&links )
+                    absorbLink(href:link["href"],
+                               txt:link.text,
+                               relativeTo:theURL,
+                               tag: "media",links:&links )
                 }
                 
             case .indexDir:

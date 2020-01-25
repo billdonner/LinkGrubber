@@ -15,12 +15,12 @@ final class OuterCrawler {
     private var icrawler : InnerCrawler
     private var krawlInfo : KrawlingInfo
     private var transformer:Transformer
-    private var pageMakerFunc:  PageMakerFuncSignature //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
+    private var pageMakerFunc:  PageMakerFunc //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
     
 
     
     init(roots:[RootStart],transformer:Transformer,
-         pageMakerFunc: @escaping PageMakerFuncSignature,
+         pageMakerFunc: @escaping PageMakerFunc,
          loggingLevel:LoggingLevel,
          lgFuncs:LgFuncs ,
          returnsResults:@escaping ReturnsGrubberStats)

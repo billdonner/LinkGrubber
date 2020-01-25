@@ -16,7 +16,7 @@ var jsonOutputStream : FileHandlerOutputStream!
 var traceStream : FileHandlerOutputStream!
 var consoleIO = ConsoleIO()
 
-public typealias PageMakerFuncSignature = (_  mode:Bool, _ url:String, _ title:String,  _ tags:[String], _ links: [Fav] ) throws -> ()
+public typealias PageMakerFunc = (_  mode:Bool, _ url:String, _ title:String,  _ tags:[String], _ links: [Fav] ) throws -> ()
 
 
 public protocol   FileSiteProt: class {

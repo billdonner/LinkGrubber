@@ -15,13 +15,13 @@ fileprivate class KrawlStream : NSObject {
     var logLevel:LoggingLevel
     var transformer:Transformer
     var crawlStats:KrawlingInfo
-    var pageMakerFunc:PageMakerFuncSignature
+    var pageMakerFunc:PageMakerFunc
     var lgFuncs:LgFuncs
     
     required   init (roots:[RootStart],
                      transformer:Transformer,
                      lgFuncs:LgFuncs,
-                     pageMakerFunc:@escaping PageMakerFuncSignature,
+                     pageMakerFunc:@escaping PageMakerFunc,
                      csvoutPath:LocalFilePath,
                      jsonoutPath:LocalFilePath,
                      logLevel:LoggingLevel) {
@@ -81,9 +81,9 @@ fileprivate class KrawlStream : NSObject {
 final public class LinkGrubber
 {
     
-    private var pageMakerFunc:PageMakerFuncSignature
+    private var pageMakerFunc:PageMakerFunc
     
-    public init(pageMakerFunc:@escaping PageMakerFuncSignature) {
+    public init(pageMakerFunc:@escaping PageMakerFunc) {
         self.pageMakerFunc = pageMakerFunc
     }
     
