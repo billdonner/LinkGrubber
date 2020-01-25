@@ -16,8 +16,8 @@ final class LinkGrubberTests: XCTestCase {
         XCTAssertEqual(LinkGrubberHello().text, "Hello, World!")
     }
     func testGrubber() {
-        let pmf:PageMakerFunc = {a,b,c,d,e in
-            print(a,b,e.count)
+        let pmf:PageMakerFunc = {props,favs in
+            print(props," ",favs.count)
         }
         let testparams = TestParams()
         do {
@@ -38,9 +38,9 @@ final class LinkGrubberTests: XCTestCase {
 
     
     func testGrubber0() {
-        let pmf:PageMakerFunc = {a,b,c,d,e in
-            print(a,b,e.count)
-        }
+       let pmf:PageMakerFunc = {props,favs in
+                  print(props," ",favs.count)
+              }
         let testparams = TestParams()
         do {
             let _ = try LinkGrubber(pageMakerFunc: pmf)
@@ -58,9 +58,9 @@ final class LinkGrubberTests: XCTestCase {
     }
     
     func testGrubber1() {
-        let pmf:PageMakerFunc = {a,b,c,d,e in
-            print(a,b,e.count)
-        }
+      let pmf:PageMakerFunc = {props,favs in
+                  print(props," ",favs.count)
+              }
         let testparams = TestParams()
         do {
             let _ = try LinkGrubber(pageMakerFunc: pmf)
@@ -77,9 +77,9 @@ final class LinkGrubberTests: XCTestCase {
         }
     }
     func testGrubber2() {
-        let pmf:PageMakerFunc = {a,b,c,d,e in
-            print(a,b,e.count)
-        }
+      let pmf:PageMakerFunc = {props,favs in
+                  print(props," ",favs.count)
+              }
         let testparams = TestParams()
         do {
             let _ = try LinkGrubber(pageMakerFunc: pmf)

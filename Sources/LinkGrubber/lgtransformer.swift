@@ -135,6 +135,7 @@ final class Transformer:NSObject {
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
+        
         for link in pr.links {
             let href =  link.href!.absoluteString
             if !href.hasSuffix("/" ) {
@@ -157,11 +158,18 @@ final class Transformer:NSObject {
                     break
                 }
             }
+            
             if cont.cover_art_url == "" {
                 cont.cover_art_url = imgurl
             }
-
-            try pageMakerFunc( false, aurl, cont.name ?? "???",pr.tags,mdlinks)
+            
+            let props = CustomPageProps(isInternalPage: false,
+                                      urlstr: aurl,
+                                      title: cont.name ?? "???",
+                                      tags:  pr.tags)
+            
+            try pageMakerFunc( props, mdlinks)
+            
         }//writemdfiles==true
     }//incorporateParseResults
     

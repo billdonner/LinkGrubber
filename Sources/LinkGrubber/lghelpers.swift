@@ -16,9 +16,14 @@ var jsonOutputStream : FileHandlerOutputStream!
 var traceStream : FileHandlerOutputStream!
 var consoleIO = ConsoleIO()
 
-public typealias PageMakerFunc = (_  mode:Bool, _ url:String, _ title:String,  _ tags:[String], _ links: [Fav] ) throws -> ()
+public typealias PageMakerFunc = (_ props:CustomPageProps,  _ links: [Fav] ) throws -> ()
 
-
+public struct CustomPageProps {
+    let isInternalPage: Bool
+    let urlstr: String
+    let title: String
+    let tags: [String]
+}
 public protocol   FileSiteProt: class {
     var pathToContentDir : String { get set }
     var pathToResourcesDir: String { get set }
