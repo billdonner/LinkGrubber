@@ -23,6 +23,16 @@ public struct CustomPageProps {
     public var urlstr: String
     public var title: String
     public var tags: [String]
+    
+    public init (  isInternalPage: Bool,
+  urlstr: String,
+ title: String,
+ tags: [String]){
+        self.isInternalPage = isInternalPage
+        self.urlstr = urlstr
+        self.title = title
+        self.tags = tags
+    }
 }
 
 
