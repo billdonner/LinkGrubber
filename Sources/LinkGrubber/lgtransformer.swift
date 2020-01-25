@@ -36,7 +36,7 @@ extension Array where Element == String  {
     }
 
 public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,  String , inout [LinkElement]) throws -> String
-public class LgFuncs {
+open class LgFuncs {
     public func isImageExtension (_ s:String) -> Bool {
         imageExtensions.includes(s)
     }
