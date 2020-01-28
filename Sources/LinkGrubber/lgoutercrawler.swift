@@ -79,8 +79,8 @@ final class OuterCrawler {
         fb.reportTitle = "Crawl Summary"
         // this is not always good
         fb.command = CommandLine.arguments
-        fb.rootcrawlpoints = stats.goodurls.map() {  kleenURLString($0)!.string }
-        fb.leafpoints = stats.badurls.map() {  kleenURLString($0)!.string }
+        fb.rootcrawlpoints = stats.goodurls.map() {  LinkGrubber.kleenURLString($0)!.string }
+        fb.leafpoints = stats.badurls.map() {  LinkGrubber.kleenURLString($0)!.string }
         fb.status = stats.badurls.count > 0 && stats.goodurls.count > 0 ? 201:(stats.goodurls.count > 0 ? 200:202)
         //let elapsed = String(format:"%02.3f ",crawltime)
         let percycle = count <= 0 ? 0.0 : (crawltime / Double(count))

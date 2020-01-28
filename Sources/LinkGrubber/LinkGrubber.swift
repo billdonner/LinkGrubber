@@ -81,6 +81,22 @@ fileprivate class KrawlStream : NSObject {
 final public class LinkGrubber
 {
     
+    
+
+    static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
+        return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
+    }
+
+    static func kleenURLString(_ url: URLFromString) -> URLFromString?{
+        let original = url.string
+        let newer = original.replacingOccurrences(of: "%20", with: "+")
+        return URLFromString(newer)
+    }
+
+    static func kleenex(_ f:String)->String {
+        return f.replacingOccurrences(of: ",", with: "!")
+    }
+    
     private var pageMakerFunc:PageMakerFunc
     
     public init(pageMakerFunc:@escaping PageMakerFunc) {

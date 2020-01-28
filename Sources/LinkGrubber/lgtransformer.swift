@@ -5,19 +5,6 @@
 import Foundation
 
 
-func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
-    return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
-}
-
-func kleenURLString(_ url: URLFromString) -> URLFromString?{
-    let original = url.string
-    let newer = original.replacingOccurrences(of: "%20", with: "+")
-    return URLFromString(newer)
-}
-
-func kleenex(_ f:String)->String {
-    return f.replacingOccurrences(of: ",", with: "!")
-}
 
 public class Fav {
     public let name: String

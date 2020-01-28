@@ -86,12 +86,12 @@ final class KrawlingInfo:NSObject {
         keyCounts.add(s)
     }
     func addStatsGoodCrawlRoot(urlstr:URLFromString) {
-        let part  =  partFromUrlstr(urlstr)
+        let part  =  LinkGrubber.partFromUrlstr(urlstr)
         goodurls.insert(part )
         if badurls.contains(part)   { badurls.remove(part) }
     }
     func addStatsBadCrawlRoot(urlstr:URLFromString) {
-        let part  =  partFromUrlstr(urlstr)
+        let part  =  LinkGrubber.partFromUrlstr(urlstr)
         if goodurls.contains(part)   { return }
         badurls.insert(part)
     }
@@ -196,7 +196,7 @@ final class RecordExporter {
             """
             return z
         }
-        return  cleanItUp(cont, f:kleenex)
+        return  cleanItUp(cont, f:LinkGrubber.kleenex)
     }
     
     
