@@ -37,8 +37,7 @@ public struct CustomPageProps {
 
 
 public protocol   FileSiteProt: class {
-    var pathToContentDir : String { get set }
-    var pathToResourcesDir: String { get set }
+    var pathToContentDir : String { get set } 
     var pathToOutputDir: String { get set }
     var matchingURLPrefix : String { get set }
     var specialFolderPaths: [String]{ get set }

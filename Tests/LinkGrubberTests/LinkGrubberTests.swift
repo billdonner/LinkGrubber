@@ -3,8 +3,7 @@ import XCTest
 
 final class LinkGrubberTests: XCTestCase {
        class TestParams: FileSiteProt {
-        var pathToContentDir : String  = ""
-        var pathToResourcesDir: String  = ""
+        var pathToContentDir : String  = "" 
         var pathToOutputDir: String  = ""
         var matchingURLPrefix : String = ""
         var specialFolderPaths: [String] = []
