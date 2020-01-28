@@ -40,25 +40,25 @@ public struct  RootStart : Codable  {
     }
 }
 // freestanding
-var LibraryDirectoryURL:URL {
-    return  URL(fileURLWithPath:  NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] as String )//+ "/" + "_export")// distinguish
-}
-var ExportDirectoryURL:URL {
-    return  URL(fileURLWithPath: "/Users/williamdonner/hd")//+ "/" + "_export")// distinguish
-}
-func bootstrapExportDir() {
-    //touched in crawler pile
-    if !FileManager.default.fileExists(atPath:  ExportDirectoryURL.absoluteString) {
-        createDir(url:ExportDirectoryURL)
-    }
-}
-func createDir( url:URL) {
-    do {
-        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
-    } catch   {
-        fatalError("****MUST STOP CANT CREATE DIRECTORY \(url) ***** \(error)")
-    }
-}
+//var LibraryDirectoryURL:URL {
+//    return  URL(fileURLWithPath:  NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] as String )//+ "/" + "_export")// distinguish
+//}
+//var ExportDirectoryURL:URL {
+//    return  URL(fileURLWithPath: "/Users/williamdonner/hd")//+ "/" + "_export")// distinguish
+//}
+//func bootstrapExportDir() {
+//    //touched in crawler pile
+//    if !FileManager.default.fileExists(atPath:  ExportDirectoryURL.absoluteString) {
+//        createDir(url:ExportDirectoryURL)
+//    }
+//}
+//func createDir( url:URL) {
+//    do {
+//        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+//    } catch   {
+//        fatalError("****MUST STOP CANT CREATE DIRECTORY \(url) ***** \(error)")
+//    }
+//}
 
 
 // to pretty up for testing tweak the error string from cocoa into something json compatible (no duble quotes)

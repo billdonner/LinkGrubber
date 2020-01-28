@@ -32,8 +32,8 @@ fileprivate class KrawlStream : NSObject {
         self.logLevel = logLevel
         self.crawlStats = KrawlingInfo()
         self.pageMakerFunc = pageMakerFunc
-        bootstrapExportDir()
-        
+        //bootstrapExportDir()
+        //
         do {
             // Some of the APIs that we use below are available in macOS 10.13 and above.
             guard #available(macOS 10.13, *) else {
