@@ -97,9 +97,9 @@ final public class LinkGrubber
     
 //    private var pageMakerFunc:PageMakerFunc
 //
-//    public init(pageMakerFunc:@escaping PageMakerFunc) {
-//        self.pageMakerFunc = pageMakerFunc
-//    }
+     public init( ) {
+ 
+     }
     
     private var recordExporter =  RecordExporter()
     
