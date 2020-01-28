@@ -8,7 +8,10 @@
 import Foundation
 
 // nothing public here
-
+struct OnePageGuts {
+    let props : CustomPageProps
+    let links : [Fav]
+}
 
 final class OuterCrawler {
     private var returnsCrawlResults : ReturnsGrubberStats
@@ -20,32 +23,33 @@ final class OuterCrawler {
 
     
     init(roots:[RootStart],transformer:Transformer,
-         pageMakerFunc: @escaping PageMakerFunc,
+        pageMakerFunc: @escaping PageMakerFunc,
          loggingLevel:LoggingLevel,
          lgFuncs:LgFuncs ,
          returnsResults:@escaping ReturnsGrubberStats)
         throws {
             self.transformer = transformer
-            self.pageMakerFunc = pageMakerFunc
+         self.pageMakerFunc = pageMakerFunc
             self.krawlInfo = KrawlingInfo()
             self.returnsCrawlResults = returnsResults
             let lk = ScrapingMachine(scraper: transformer.scraper)
             // we start the inner crawler right here
-            self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk,logLevel:loggingLevel)
+            self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, pagemaker: pageMakerFunc ,logLevel:loggingLevel)
             startMeUp(roots, icrawler: icrawler )
     }
     
     
     
-    func onepageworth(pr:ParseResults)->() {
-        //each page we hit gets scraped and incorporated
-        do {
-            try transformer.incorporateParseResults(pr: pr,pageMakerFunc: self.pageMakerFunc)
-        }
-        catch {
-            print("couldnt scrape onpageworth \(error)")
-        }
-    }
+//    func exportone(pr:ParseResults)->() {
+//        //each page we hit gets scraped and incorporated
+//        do {
+//            let (props,links) = try transformer.incorporateParseResults(pr: pr)
+//            
+//        }
+//        catch {
+//            print("couldnt scrape onpageworth \(error)")
+//        }
+//    }
     
     
     private func startMeUp(_ roots:[RootStart],icrawler:InnerCrawler) {
@@ -53,7 +57,7 @@ final class OuterCrawler {
         // let baseurltag = (icrawler.baseURL != nil) ?  icrawler.baseURL!.absoluteString : "baseurl fail" //XXXXXXXX
         print("[crawler] starting \(startTime), root \(roots[0].urlstr) please be patient")
         
-        icrawler.bigCrawlLoop( crawlStats: krawlInfo, exportOnePageWorth: onepageworth) {
+        icrawler.bigCrawlLoop( crawlStats: krawlInfo) {
             _ in
             // finally finished !
             
@@ -117,48 +121,32 @@ final class ScrapingMachine:NSObject {
     
     // this is the major entry point
     func scrapeFromURL( _ urlget:URL,
-                        parsingTechnique:ParseTechnique,
-                        whenDone:@escaping (( ParseResults ) ->())){
+                        parsingTechnique:ParseTechnique) -> ParseResults? {
         
         let  (  _, html) = fetchHTMLFromURL(urlget)
         do {
             // [3] if no incoming, just get out of here
             if html.count == 0 {
-                whenDone(  ParseResults(url:nil,
-                                        technique: parsingTechnique,
-                                        status: .failed(code:-98), pagetitle:"", links: [],  props: [], tags: []))
-                return
+              return nil
             }
             // [4] parse the incoming and stash the results, regardless
             // note = html must already be filled in and hence urget is for info
             let  parseResultz  =  scraperx(parsingTechnique,urlget,   html)
             
             guard let parseResults = parseResultz else {
-                
-                whenDone( ParseResults(url:urlget,
-                                       technique: parsingTechnique,
-                                       status: .failed(code: -99), pagetitle:"" , links: [], props: [], tags: []))
-                return
+                return nil
                 
             }
             // [5] figure out what to do
             let status:ParseStatus = parseResults.status
             switch status {
-                
-            case .failed(let code):
-                whenDone( ParseResults(url:urlget,
-                                       technique: parsingTechnique,
-                                       status: .failed(code: code), pagetitle:"", links: [], props: [], tags: [])
-                )
-                return
-                
-            case .succeeded:
-                whenDone(
-                    ParseResults(url:urlget,
+            case .succeeded: 
+                   return ParseResults(url:urlget,
                                  technique: parsingTechnique,
                                  status: .succeeded, pagetitle:parseResultz!.pagetitle, links:parseResults.links,  props: parseResults.props,  tags: [])
-                )
-                return
+               
+            default: return nil
+            
             }
         }
     }

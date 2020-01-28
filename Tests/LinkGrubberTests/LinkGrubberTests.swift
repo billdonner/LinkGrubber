@@ -36,12 +36,12 @@ final class LinkGrubberTests: XCTestCase {
         }
         let testparams = TestParams()
         do {
-            let _ = try LinkGrubber(pageMakerFunc: pmf)
+            let _ = try LinkGrubber()
                 .grub(roots:[RootStart(name:"linkgrubber",
                                        urlstr:"https://billdonner.com/linkgrubber/empty-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none, lgFuncs:  defaults())
+                      logLevel:.none, pageMakerFunc:  pmf, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -59,11 +59,11 @@ final class LinkGrubberTests: XCTestCase {
               }
         let testparams = TestParams()
         do {
-            let _ = try LinkGrubber(pageMakerFunc: pmf)
+            let _ = try LinkGrubber()
                 .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/zero-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none, lgFuncs:  defaults())
+                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -79,11 +79,11 @@ final class LinkGrubberTests: XCTestCase {
               }
         let testparams = TestParams()
         do {
-            let _ = try LinkGrubber(pageMakerFunc: pmf)
+            let _ = try LinkGrubber()
                 .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/one-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none, lgFuncs:defaults())
+                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -98,11 +98,11 @@ final class LinkGrubberTests: XCTestCase {
               }
         let testparams = TestParams()
         do {
-            let _ = try LinkGrubber(pageMakerFunc: pmf)
+            let _ = try LinkGrubber()
                 .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/two-site")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none, lgFuncs:  defaults())
+                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:  defaults())
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }

@@ -47,7 +47,7 @@ import Foundation
     }
     
     
-    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,    didFinishUserCall: inout Bool,  savedExportOne: @escaping  ReturnsParseResults) {
+    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   pmf:PageMakerFunc, didFinishUserCall: inout Bool ) {
         while crawlState == .crawling {
             if items.count == 0 {
                 crawlState = .done
@@ -61,7 +61,16 @@ import Foundation
             }
             // squeeze down before crawling to keep memory reasonable
             autoreleasepool {
-                innerCrawler.crawlOne(rootURL: newStart, technique:.parseTop ,stats:stats,exportone:savedExportOne)
+                do{
+              let opg =  try innerCrawler.crawlOne(rootURL: newStart, technique:.parseTop ,stats:stats )
+                // now publish the guts
+                if let opg = opg {
+                    try pmf(opg.props,opg.links)
+                }
+                }
+                catch {
+                    print("cant crawl \(error)")
+                }
             }
         }
     }
@@ -72,16 +81,18 @@ import Foundation
 final class InnerCrawler : NSObject {
     private(set)  var ct =  CrawlTable()
     private var crawloptions: LoggingLevel
-    
+    private  var transformer:Transformer
+    private var pagemakerfunc: PageMakerFunc
     private(set) var grubber:ScrapingMachine
     private(set) var places: [RootStart] = [] // set by crawler
     private var first = true
     
-    init(roots:[RootStart], grubber:ScrapingMachine,logLevel:LoggingLevel = .none) throws {
+    init(roots:[RootStart], grubber:ScrapingMachine,transformer:Transformer, pagemaker:@escaping PageMakerFunc,logLevel:LoggingLevel = .none) throws {
         self.places = roots
         self.grubber = grubber
         self.crawloptions = logLevel
-        
+        self.transformer = transformer
+        self.pagemakerfunc = pagemaker
     }
     
     
@@ -100,7 +111,7 @@ final class InnerCrawler : NSObject {
     }
     
     
-    func crawlOne(rootURL:URL,technique:ParseTechnique,stats:KrawlingInfo,exportone:@escaping (ReturnsParseResults)) {
+    func crawlOne(rootURL:URL,technique:ParseTechnique,stats:KrawlingInfo ) throws -> OnePageGuts? {
         
         // this is really where the action starts, we crawl from RootStart
         
@@ -113,19 +124,22 @@ final class InnerCrawler : NSObject {
         case .parseTop:
             
             // in this case the brandujrl is the topurl
-            self.loadAndScrape(rootURL, technique:.parseTop) {parserez in
+            guard let parserez =  self.loadAndScrape(rootURL, technique:.parseTop) else {
+                print ("load and scrape returned zilch")
+                return nil
+            }
                 // take all these urls and put them on the end of the crawl list as Leafs
                 guard let _ = parserez.url else {
-                    return
+                    return nil
                 }
                 
                 guard parserez.status == .succeeded else {
                     stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-                    return
+                     return nil
                 }
                 guard  parserez.links.count > 0 else {
                     stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-                    return
+                     return nil
                 }
                 
                 stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
@@ -142,33 +156,34 @@ final class InnerCrawler : NSObject {
                             self.addToCrawlList(z)
                         }
                     case .leaf:
-                        break /// exportone(linkElement)
+                        break 
                     }
                 }//roots for each
-                exportone(parserez)
-            }
+            let guts = try transformer.incorporateParseResults(pr: parserez, pageMakerFunc:  pagemakerfunc)
+                return guts
+            
         case .parseLeaf:
             
-            assert(true,"Never get here")
+           fatalError("Never get here")
             
-            self.loadAndScrape(rootURL,  technique:.parseLeaf) {leafparserez in
-                if self.crawloptions == .verbose  {  print("\(self.ct.items.count),",terminator:"")
-                    fflush(stdout)
-                }
+//            self.loadAndScrape(rootURL,  technique:.parseLeaf) {leafparserez in
+//                if self.crawloptions == .verbose  {  print("\(self.ct.items.count),",terminator:"")
+//                    fflush(stdout)
+//                }
                 //exportone(leafparserez)
-            }
+        
         case .indexDir:
             consoleIO.writeMessage("> indexDir support coming soon \(topurlstr)",to:.error)
 //        case .passThru:
 //            consoleIO.writeMessage("> passthru \(topurlstr)",to:.error)
             
         }
+        return nil
     }
     
-    func bigCrawlLoop(crawlStats:KrawlingInfo, exportOnePageWorth:@escaping ReturnsParseResults, finally:@escaping ReturnsCrawlStats) {
+    func bigCrawlLoop(crawlStats:KrawlingInfo, finally:@escaping ReturnsCrawlStats) {
         
         var didFinishUserCall = false
-        var savedExportOne = exportOnePageWorth
         var savedWhenDone = finally
         
         defer {
@@ -185,22 +200,17 @@ final class InnerCrawler : NSObject {
             addToCrawlList(url)
         }
         
-        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self, didFinishUserCall: &didFinishUserCall, savedExportOne: savedExportOne)
+        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self, pmf: pagemakerfunc, didFinishUserCall: &didFinishUserCall)
     }
 }
 
 extension InnerCrawler {
     private  func loadAndScrape(_ rootURL:URL,
-                                technique:ParseTechnique,
-                                finito:@escaping ReturnsParseResults)
+                                technique:ParseTechnique) -> ParseResults?
     {
-        
-        // take this into the background
-        grubber.scrapeFromURL(rootURL,  parsingTechnique: technique){  parseres  in
-            
-            // take whatever we have scraped back to the foreground
-            finito (parseres)
-        }
+         
+       return grubber.scrapeFromURL(rootURL,  parsingTechnique: technique)
+ 
     }
     private func outString (_ s:String) {
         print(s)

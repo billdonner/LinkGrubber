@@ -15,23 +15,23 @@ fileprivate class KrawlStream : NSObject {
     var logLevel:LoggingLevel
     var transformer:Transformer
     var crawlStats:KrawlingInfo
-    var pageMakerFunc:PageMakerFunc
+    var pageMakerFunc: PageMakerFunc
     var lgFuncs:LgFuncs
     
     required   init (roots:[RootStart],
                      transformer:Transformer,
+                     pageMakerFunc: @escaping PageMakerFunc,
                      lgFuncs:LgFuncs,
-                     pageMakerFunc:@escaping PageMakerFunc,
                      csvoutPath:LocalFilePath,
                      jsonoutPath:LocalFilePath,
                      logLevel:LoggingLevel) {
         
         self.transformer = transformer
-        self.pageMakerFunc = pageMakerFunc
         self.roots = roots
         self.lgFuncs = lgFuncs
         self.logLevel = logLevel
         self.crawlStats = KrawlingInfo()
+        self.pageMakerFunc = pageMakerFunc
         bootstrapExportDir()
         
         do {
@@ -63,7 +63,7 @@ fileprivate class KrawlStream : NSObject {
                         finally:@escaping ReturnsGrubberStats) {
         
         do {
-            let _ = try OuterCrawler (roots: roots,transformer:transformer,pageMakerFunc: pageMakerFunc,
+            let _ = try OuterCrawler (roots: roots,transformer:transformer, pageMakerFunc: pageMakerFunc,
                                       loggingLevel: loggingLevel, lgFuncs: lgFuncs )
             { crawlResult in
                 // here we are done, reflect it back upstream
@@ -80,8 +80,6 @@ fileprivate class KrawlStream : NSObject {
 
 final public class LinkGrubber
 {
-    
-    
 
     static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
         return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
@@ -97,11 +95,11 @@ final public class LinkGrubber
         return f.replacingOccurrences(of: ",", with: "!")
     }
     
-    private var pageMakerFunc:PageMakerFunc
-    
-    public init(pageMakerFunc:@escaping PageMakerFunc) {
-        self.pageMakerFunc = pageMakerFunc
-    }
+//    private var pageMakerFunc:PageMakerFunc
+//
+//    public init(pageMakerFunc:@escaping PageMakerFunc) {
+//        self.pageMakerFunc = pageMakerFunc
+//    }
     
     private var recordExporter =  RecordExporter()
     
@@ -110,6 +108,7 @@ final public class LinkGrubber
                       opath:String,
                       params: FileSiteProt,
                       logLevel:LoggingLevel,
+                      pageMakerFunc : @escaping PageMakerFunc,
                       lgFuncs : LgFuncs,
                       finally:@escaping ReturnsGrubberStats) throws {
         
@@ -122,8 +121,9 @@ final public class LinkGrubber
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
+                               pageMakerFunc:pageMakerFunc,
                              lgFuncs: lgFuncs ,// transformer
-            pageMakerFunc: self.pageMakerFunc,
+          
             csvoutPath: LocalFilePath(fixedPath+".csv"),
             jsonoutPath: LocalFilePath(fixedPath+".json"),
             logLevel: logLevel)// krawlstream

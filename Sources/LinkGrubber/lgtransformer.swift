@@ -110,7 +110,8 @@ final class Transformer:NSObject {
         print("[crawler] finalized csv and json streams")
     }
     
-    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFunc,imgurl:String="") throws {
+    
+    func  incorporateParseResults(pr:ParseResults,pageMakerFunc:PageMakerFunc,imgurl:String="") throws -> OnePageGuts? {
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
@@ -147,9 +148,11 @@ final class Transformer:NSObject {
                                       title: cont.name ?? "???",
                                       tags:  pr.tags)
             
-            try pageMakerFunc( props, mdlinks)
+            return OnePageGuts(props: props,links: mdlinks)
             
         }//writemdfiles==true
+        
+        return nil
     }//incorporateParseResults
     
     func scraper(_ parseTechnique:ParseTechnique, url theURL:URL,  html: String)   -> ParseResults? {
