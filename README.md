@@ -5,12 +5,21 @@
 <p align="center">
 <img src="https://billdonner.com/images/fists/fistUp1024x1024.png" width="300" max-width="90%" alt="Publish" />
 </p>
+[test cases]("https://billdonner.github.io/LinkGrubber")
 
-## Crawl Your Remote Music Assets
+## Crawl Your Remote Assets
+
+In my case, these are MP3 files from band performances over the years.
 
 ## Generate CSV an JSON for Data Analysis
 
-## Generate MarkDown Files for Publish
+LinkGrubber writes a file for Excel or Numbers analsysis of your assets, and a json version for your own programs.
+
+## Callback to Your Own File Maker
+
+Typically, as pages of links are grubber you'll want to write a file. It's up to you.
+
+My Static Websites, built on Publish from John Sundell, generates MarkDown Files
 
 
 ```swift 
