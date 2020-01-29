@@ -111,7 +111,7 @@ final class Transformer:NSObject {
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
-        print("[crawler] finalized csv and json streams")
+       // print("[crawler] finalized csv and json streams")
     }
     
     

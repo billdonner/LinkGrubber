@@ -37,66 +37,29 @@ final class OuterCrawler {
             self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, pagemaker: pageMakerFunc ,logLevel:loggingLevel)
             startMeUp(roots, icrawler: icrawler )
     }
-    
-    
-    
-//    func exportone(pr:ParseResults)->() {
-//        //each page we hit gets scraped and incorporated
-//        do {
-//            let (props,links) = try transformer.incorporateParseResults(pr: pr)
-//            
-//        }
-//        catch {
-//            print("couldnt scrape onpageworth \(error)")
-//        }
-//    }
-    
+
     
     private func startMeUp(_ roots:[RootStart],icrawler:InnerCrawler) {
         let startTime = Date()
-        // let baseurltag = (icrawler.baseURL != nil) ?  icrawler.baseURL!.absoluteString : "baseurl fail" //XXXXXXXX
-        print("[crawler] starting \(startTime), root \(roots[0].urlstr) please be patient")
-        
         icrawler.bigCrawlLoop( crawlStats: krawlInfo) {
             _ in
             // finally finished !
             
             let (count,peak) = self.icrawler.crawlingStats()
             let crawltime = Date().timeIntervalSince(startTime)
-            
-            self.finalSummary(stats: self.krawlInfo,
-                              count:count,
-                              peak:peak,
-                              crawltime:crawltime)
-            
-            let crawlResults = LinkGrubberStats(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:crawltime/Double(count), count1: self.krawlInfo.goodurls.count, count2:self.krawlInfo.badurls.count, status:200)
+            let percycle =  count == 0  ? 0 : crawltime/Double(count)
+            let grubstats = LinkGrubberStats(added:count,
+                                                peak:peak,
+                                                elapsedSecs: crawltime,
+                                                secsPerCycle: percycle,
+                                                count1: self.krawlInfo.goodurls.count,
+                                                count2:self.krawlInfo.badurls.count,
+                                                status:200)
             /// this is where we will finally wind up, need to call the user routine that was i
             
-            self.returnsCrawlResults(crawlResults)
+            self.returnsCrawlResults(grubstats)
             
         }
-    }
-    
-    private   func finalSummary (stats:KrawlingInfo, count:Int,peak:Int,crawltime:TimeInterval) {
-        // copy into  TestResultsBlock
-        var fb = TestResultsBlock()
-        fb.reportTitle = "Crawl Summary"
-        // this is not always good
-        fb.command = CommandLine.arguments
-        fb.rootcrawlpoints = stats.goodurls.map() {  LinkGrubber.kleenURLString($0)!.string }
-        fb.leafpoints = stats.badurls.map() {  LinkGrubber.kleenURLString($0)!.string }
-        fb.status = stats.badurls.count > 0 && stats.goodurls.count > 0 ? 201:(stats.goodurls.count > 0 ? 200:202)
-        //let elapsed = String(format:"%02.3f ",crawltime)
-        let percycle = count <= 0 ? 0.0 : (crawltime / Double(count))
-        
-        
-        let statsblock = LinkGrubberStats(added:count,peak:peak,elapsedSecs:crawltime,secsPerCycle:percycle,
-                                           count1: self.krawlInfo.goodurls.count, count2:self.krawlInfo.badurls.count,
-                                           status:200)
-        
-        fb .crawlStats = statsblock
-        
-        //emitResultsAsTrace(fb)//), trace)
     }
 }
 

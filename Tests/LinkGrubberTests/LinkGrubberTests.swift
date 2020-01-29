@@ -7,12 +7,12 @@ final class LinkGrubberTests: XCTestCase {
         var logLevel: LoggingLevel = .none
         var lgFuncs: LgFuncs = defaults()
         var pathToOutputDir: String  = ""
-        var matchingURLPrefix : String = ""
+        var matchingURLPrefix : String = "https://billdonner.github.io/LinkGrubber"
     }
     
     // test params
     static func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, title: String , links:inout [LinkElement]) throws -> String {
-        print("testscraperfunc",url,title)
+        print("[LinkGrubber] scraping \(url)")
         return "linkgrubber.defaults()"
     }
     

@@ -48,9 +48,7 @@ final public class LinkGrubber
         let transformer =  Transformer(recordExporter:recordExporter,
                                fsProt: params,
                                lgFuncs:  params.lgFuncs)
-        
-        
-        cleanOuputs(baseFolderPath:params.pathToContentDir,folderPaths: params.specialFolderPaths)
+
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
@@ -122,7 +120,7 @@ fileprivate class KrawlStream : NSObject {
                                       loggingLevel: loggingLevel, lgFuncs: lgFuncs )
             { crawlResult in
                 // here we are done, reflect it back upstream
-                // print(crawlResult)
+                print(crawlResult.describe())
                 // now here must unwind back to original caller
                 finally(crawlResult)
             }

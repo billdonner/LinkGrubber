@@ -189,48 +189,48 @@ public struct Props : Codable,Hashable {
     }
 }
 
-
-struct TestResultsBlock:Codable {
-    enum CodingKeys: String, CodingKey {
-        case crawlStats    = "crawl-stats"
-        case crawlerStarted     = "crawler-started"
-        case reportTitle = "report-title"
-        case status
-        //        case leafpoints
-        //        case rootcrawlpoints
-        case command
-    }
-    var status:Int = 0
-    var leafpoints:[String]? = []
-    var rootcrawlpoints:[String]? = []
-    var command:[String] = []
-    var reportTitle:String = ""
-    var crawlStats:LinkGrubberStats?
-    var crawlerStarted: String =  ""
-    
-}
-func exitWith( _ code:Int, error:Error) {
-    
-    func emitResultsAsTrace(_ fb: TestResultsBlock){//}, _ trace: TraceFuncSig) {
-        // convert to json and put the whole chunk out
-        do {
-            let enc = JSONEncoder()
-            enc.outputFormatting = .prettyPrinted
-            let data = try enc.encode(fb)
-            if let json = String(data:data,encoding:.utf8) {
-                // trace(json,nil,true,false)
-                print(json)
-            }
-        }
-        catch {
-            print("Could  not encode fullparseblock ", error)
-        }
-    }
-    
-    
-    var trb = TestResultsBlock()
-    trb.status = code
-    trb.reportTitle = "-- config couldnt open \(safeError(error: error))"
-    emitResultsAsTrace(trb)//, traceStream)
-    exit(0)
-}
+//
+//struct TestResultsBlock:Codable {
+//    enum CodingKeys: String, CodingKey {
+//        case crawlStats    = "crawl-stats"
+//        case crawlerStarted     = "crawler-started"
+//        case reportTitle = "report-title"
+//        case status
+//        //        case leafpoints
+//        //        case rootcrawlpoints
+//        case command
+//    }
+//    var status:Int = 0
+//    var leafpoints:[String]? = []
+//    var rootcrawlpoints:[String]? = []
+//    var command:[String] = []
+//    var reportTitle:String = ""
+//    var crawlStats:LinkGrubberStats?
+//    var crawlerStarted: String =  ""
+//
+//}
+//func exitWith( _ code:Int, error:Error) {
+//
+//    func emitResultsAsTrace(_ fb: TestResultsBlock){//}, _ trace: TraceFuncSig) {
+//        // convert to json and put the whole chunk out
+//        do {
+//            let enc = JSONEncoder()
+//            enc.outputFormatting = .prettyPrinted
+//            let data = try enc.encode(fb)
+//            if let json = String(data:data,encoding:.utf8) {
+//                // trace(json,nil,true,false)
+//                print(json)
+//            }
+//        }
+//        catch {
+//            print("Could  not encode fullparseblock ", error)
+//        }
+//    }
+//
+//
+//    var trb = TestResultsBlock()
+//    trb.status = code
+//    trb.reportTitle = "-- config couldnt open \(safeError(error: error))"
+//    emitResultsAsTrace(trb)//, traceStream)
+//    exit(0)
+//}

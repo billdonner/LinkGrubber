@@ -140,6 +140,9 @@ open class LinkGrubberStats:Codable {
         self.count2 = count2
         self.status = status
     }
+    func describe () -> String {
+        "[LinkGrubber] scanned \(added) pages, added \(count1) items \(count2) rejected at \(self.secsPerCycle)"
+    }
     
 }
 struct ParseResults {
