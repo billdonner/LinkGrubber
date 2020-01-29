@@ -1,12 +1,12 @@
 # Test Sites For LinkGrubber
 
-[zero-site]("linkgrubberexamples/zero-site")
+[zero-site]("https://billdonner.github.io/LinkGrubber/zero-site")
 
-[one-site]( "linkgrubberexamples/one-site")
+[one-site]( "https://billdonner.github.io/LinkGrubber/one-site")
 
-[two-site]("linkgrubberexamples/two-site")
+[two-site]("https://billdonner.github.io/LinkGrubber/two-site")
 
-[null-site]("linkgrubberexamples/null-site")
+[null-site]("https://billdonner.github.io/LinkGrubber/null-site")
 
-[empty-site]("linkgrubberexamples/empty-site")
+[empty-site]("https://billdonner.github.io/LinkGrubber/empty-site")
 
