@@ -2,7 +2,7 @@
 
 If you are looking at these sites from within Github, these links dont work.
 
-They do work [https://billdonner.github.io/LinkGrubber]("https://billdonner.github.io/LinkGrubber")
+They do work at [https://billdonner.github.io/LinkGrubber]("https://billdonner.github.io/LinkGrubber")
 
 [zero-site]("https://billdonner.github.io/LinkGrubber/linkgrubberexamples/zero-site")
 
@@ -21,3 +21,5 @@ They do work [https://billdonner.github.io/LinkGrubber]("https://billdonner.gith
 # Grubler Command Line Interface
 
 [Grubler]  (https://github.com/billdonner/Grubler)
+
+An Mac Terminal program to crawl the Internet and produce "CSS" and "JSON" output
