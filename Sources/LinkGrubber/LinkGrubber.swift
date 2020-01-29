@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  LinkGrubber.swift
 //  
 //
 //  Created by william donner on 1/12/20.
@@ -9,6 +9,61 @@ import Foundation
 
 // main entry point for public Linkgrubber.grub() call
 
+
+
+
+final public class LinkGrubber
+{
+
+    static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
+        return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
+    }
+
+    static func kleenURLString(_ url: URLFromString) -> URLFromString?{
+        let original = url.string
+        let newer = original.replacingOccurrences(of: "%20", with: "+")
+        return URLFromString(newer)
+    }
+
+    static func kleenex(_ f:String)->String {
+        return f.replacingOccurrences(of: ",", with: "!")
+    }
+    
+     public init( ) {
+ 
+     }
+    
+    private var recordExporter =  RecordExporter()
+    
+    public  func grub(
+                      roots:[RootStart],
+                      opath:String,
+                      params: FileSiteProt,
+                      pageMakerFunc : @escaping PageMakerFunc,
+                      finally:@escaping ReturnsGrubberStats) throws {
+        
+        guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
+            else {  fatalError("cant fix outpath") }
+        
+        let transformer =  Transformer(recordExporter:recordExporter,
+                               fsProt: params,
+                               lgFuncs:  params.lgFuncs)
+        
+        
+        cleanOuputs(baseFolderPath:params.pathToContentDir,folderPaths: params.specialFolderPaths)
+        
+        let rm = KrawlStream(roots:roots,
+                             transformer:transformer,
+                               pageMakerFunc:pageMakerFunc,
+                               lgFuncs: params.lgFuncs ,// transformer
+          
+            csvoutPath: LocalFilePath(fixedPath+".csv"),
+            jsonoutPath: LocalFilePath(fixedPath+".json"),
+            logLevel: params.logLevel)// krawlstream
+        
+        rm.startCrawling( roots:roots,loggingLevel: params.logLevel,finally:finally )
+    }
+}
 fileprivate class KrawlStream : NSObject {
     
     var roots: [RootStart]
@@ -75,59 +130,5 @@ fileprivate class KrawlStream : NSObject {
         catch {
             invalidCommand(444);exit(0)
         }
-    }
-}
-
-final public class LinkGrubber
-{
-
-    static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
-        return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
-    }
-
-    static func kleenURLString(_ url: URLFromString) -> URLFromString?{
-        let original = url.string
-        let newer = original.replacingOccurrences(of: "%20", with: "+")
-        return URLFromString(newer)
-    }
-
-    static func kleenex(_ f:String)->String {
-        return f.replacingOccurrences(of: ",", with: "!")
-    }
-    
-//    private var pageMakerFunc:PageMakerFunc
-//
-     public init( ) {
- 
-     }
-    
-    private var recordExporter =  RecordExporter()
-    
-    public  func grub(
-                      roots:[RootStart],
-                      opath:String,
-                      params: FileSiteProt,
-                      logLevel:LoggingLevel,
-                      pageMakerFunc : @escaping PageMakerFunc,
-                      lgFuncs : LgFuncs,
-                      finally:@escaping ReturnsGrubberStats) throws {
-        
-        guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
-            else {  fatalError("cant fix outpath") }
-        
-        let transformer =  Transformer(recordExporter:recordExporter,
-                               fsProt: params,
-                               lgFuncs:  lgFuncs)
-        
-        let rm = KrawlStream(roots:roots,
-                             transformer:transformer,
-                               pageMakerFunc:pageMakerFunc,
-                             lgFuncs: lgFuncs ,// transformer
-          
-            csvoutPath: LocalFilePath(fixedPath+".csv"),
-            jsonoutPath: LocalFilePath(fixedPath+".json"),
-            logLevel: logLevel)// krawlstream
-        
-        rm.startCrawling( roots:roots,loggingLevel: logLevel,finally:finally )
     }
 }

@@ -37,10 +37,10 @@ public struct CustomPageProps {
 
 
 public protocol   FileSiteProt: class {
-    var pathToContentDir : String { get set } 
     var pathToOutputDir: String { get set }
     var matchingURLPrefix : String { get set }
-    var specialFolderPaths: [String]{ get set }
+    var logLevel:LoggingLevel { get set }
+    var lgFuncs : LgFuncs { get set}
 }
 
 public enum LoggingLevel {

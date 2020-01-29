@@ -2,26 +2,27 @@ import XCTest
 @testable import LinkGrubber
 
 final class LinkGrubberTests: XCTestCase {
-       class TestParams: FileSiteProt {
-        var pathToContentDir : String  = "" 
+    
+    class TestParams: FileSiteProt {
+        var logLevel: LoggingLevel = .none
+        var lgFuncs: LgFuncs = defaults()
         var pathToOutputDir: String  = ""
         var matchingURLPrefix : String = ""
-        var specialFolderPaths: [String] = []
     }
     
     // test params
-       func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, title: String , links:inout [LinkElement]) throws -> String {
-           print("linkgrubber.defaults",url,title)
-           return "linkgrubber.defaults()"
-       }
-
-    func defaults() -> LgFuncs {
-            return LgFuncs(imageExtensions: ["jpg","jpeg","png"],
-                           audioExtensions: ["mp3","mpeg","wav"],
-                           markdownExtensions: ["md", "markdown", "txt", "text"],
-                           scrapeAndAbsorbFunc: testscraperfunc)
-        }
-
+    static func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, title: String , links:inout [LinkElement]) throws -> String {
+        print("testscraperfunc",url,title)
+        return "linkgrubber.defaults()"
+    }
+    
+   static func defaults() -> LgFuncs {
+        return LgFuncs(imageExtensions: ["jpg","jpeg","png"],
+                       audioExtensions: ["mp3","mpeg","wav"],
+                       markdownExtensions: ["md", "markdown", "txt", "text"],
+                       scrapeAndAbsorbFunc: testscraperfunc)
+    }
+    
     
     func testExample() {
         // This is an example of a functional test case.
@@ -29,18 +30,25 @@ final class LinkGrubberTests: XCTestCase {
         // results.
         XCTAssertEqual(LinkGrubberHello().text, "Hello, World!")
     }
-    func testGrubber() {
-        let pmf:PageMakerFunc = {props,favs in
+    
+    var pmf:PageMakerFunc!
+    var testparams: TestParams!
+    
+    override func setUp() {
+        
+        pmf  = {props,favs in
             print(props," ",favs.count)
         }
-        let testparams = TestParams()
+        testparams = TestParams()
+    }
+    func testGrubber() {
+        
         do {
             let _ = try LinkGrubber()
-                .grub(roots:[RootStart(name:"linkgrubber",
-                                       urlstr:"https://billdonner.com/linkgrubber/empty-site")],
+                .grub(roots:[RootStart(name:"empty-site",
+                                       urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/empty-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams,
-                      logLevel:.none, pageMakerFunc:  pmf, lgFuncs:  defaults())
+                      params: testparams, pageMakerFunc:  pmf )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -50,19 +58,16 @@ final class LinkGrubberTests: XCTestCase {
         }
     }
     
-
+    
     
     func testGrubber0() {
-       let pmf:PageMakerFunc = {props,favs in
-                  print(props," ",favs.count)
-              }
-        let testparams = TestParams()
+        
         do {
             let _ = try LinkGrubber()
-                .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/zero-site")],
+                .grub(roots:[RootStart(name:"zero-site",
+                                       urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/zero-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams,
-                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:  defaults())
+                      params: testparams,  pageMakerFunc: pmf )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -73,16 +78,13 @@ final class LinkGrubberTests: XCTestCase {
     }
     
     func testGrubber1() {
-      let pmf:PageMakerFunc = {props,favs in
-                  print(props," ",favs.count)
-              }
-        let testparams = TestParams()
+        
         do {
             let _ = try LinkGrubber()
-                .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/one-site")],
+                .grub(roots:[RootStart(name:"one-site",
+                                       urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams,
-                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:defaults())
+                      params: testparams,  pageMakerFunc: pmf )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -92,16 +94,14 @@ final class LinkGrubberTests: XCTestCase {
         }
     }
     func testGrubber2() {
-      let pmf:PageMakerFunc = {props,favs in
-                  print(props," ",favs.count)
-              }
-        let testparams = TestParams()
+        
         do {
             let _ = try LinkGrubber()
-                .grub(roots:[RootStart(name:"linkgrubber", urlstr:"https://billdonner.com/linkgrubber/two-site")],
+                .grub(roots:[RootStart(name:"two-site",
+                                       urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/two-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      logLevel:.none, pageMakerFunc: pmf, lgFuncs:  defaults())
+                      pageMakerFunc: pmf   )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -111,11 +111,11 @@ final class LinkGrubberTests: XCTestCase {
         }
     }
     
-
+    
     static var allTests = [
-    ("testGrubber", testGrubber),
-    ("testGrubber0", testGrubber0),
-    ("testGrubber1", testGrubber1),
-    ("testGrubber2", testGrubber2)
+        ("testGrubber", testGrubber),
+        ("testGrubber0", testGrubber0),
+        ("testGrubber1", testGrubber1),
+        ("testGrubber2", testGrubber2)
     ]
 }

@@ -23,6 +23,8 @@ extension Array where Element == String  {
     }
 
 public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,  String , inout [LinkElement]) throws -> String
+
+
 open class LgFuncs {
     public func isImageExtension (_ s:String) -> Bool {
         imageExtensions.includes(s)
@@ -39,7 +41,10 @@ open class LgFuncs {
    private var markdownExtensions:[String]
    private(set) var scrapeRestore:ScrapeAndAbsorbFunc
     
-   public init(imageExtensions:[String],audioExtensions:[String],markdownExtensions:[String],scrapeAndAbsorbFunc:@escaping ScrapeAndAbsorbFunc) {
+   public init(imageExtensions:[String],
+               audioExtensions:[String],
+               markdownExtensions:[String],
+               scrapeAndAbsorbFunc:@escaping ScrapeAndAbsorbFunc) {
         self.imageExtensions = imageExtensions
         self.audioExtensions = audioExtensions
         self.markdownExtensions = markdownExtensions
@@ -103,7 +108,6 @@ final class Transformer:NSObject {
         self.lgFuncs = lgFuncs
         self.recordExporter = recordExporter
         super.init()
-        cleanOuputs(baseFolderPath:fsProt.pathToContentDir,folderPaths: fsProt.specialFolderPaths)
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
@@ -186,31 +190,5 @@ final class Transformer:NSObject {
         return  ParseResults(url: theURL, technique: parseTechnique,
                              status: .succeeded, pagetitle: title,
                              links: links, props:[], tags: [])
-    }
-}
-
-//MARK: - pass thru the music and art files, only
-extension Transformer {
-
-    
-    //MARK: - cleanup special folders for this site
-    func cleanOuputs(baseFolderPath:String,folderPaths:[String]) {
-        do {
-            // clear the output directory
-            let fm = FileManager.default
-            var counter = 0
-            for folder in folderPaths{
-                
-                let dir = URL(fileURLWithPath:baseFolderPath+folder)
-                
-                let furls = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
-                for furl in furls {
-                    try fm.removeItem(at: furl)
-                    counter += 1
-                }
-            }
-            print("[crawler] Cleaned \(counter) files from ", baseFolderPath )
-        }
-        catch {print("[crawler] Could not clean outputs \(error)")}
     }
 }
