@@ -147,23 +147,19 @@ open class LinkGrubberStats:Codable {
 }
 struct ParseResults {
     let url : URL?
-    let technique : ParseTechnique
     let status : ParseStatus
-    
     let pagetitle: String
     let links :  [LinkElement]
     let props : [Props]
     let tags : [String]
-    init(url:URL?,
-         technique:ParseTechnique,
+    init(url:URL?, 
          status:ParseStatus,
          pagetitle:String,
          links:[LinkElement],
          props:[Props],
          tags:[String]) {
         
-        self.url = url
-        self.technique = technique
+        self.url = url 
         self.status = status
         self.pagetitle = pagetitle
         self.links = links
@@ -172,7 +168,25 @@ struct ParseResults {
     }
 }
 
-
+final class  CrawlBlock:Codable {
+    // a place to stash page related things
+    //these are the only elements moved into the output stream
+    
+    var name:String? = ""
+    var artist:String? = ""
+    var albumurl:String? = ""
+    var songurl:String = ""
+    var cover_art_url:String? = ""
+    var album : String?  {
+        if let alurl = albumurl {
+            let blurl = alurl.hasSuffix("/") ? String( alurl.dropLast()  ) : alurl
+            if  let aname = blurl.components(separatedBy: "/").last {
+                return aname
+            }
+        }
+        return albumurl
+    }
+}
 
 /*
  
@@ -189,9 +203,9 @@ final class RecordExporter {
     func mskecsvtrailer( ) -> String?  {
         return    nil
     }
-    func makecsvrow(cont:CrawlingElement) -> String {
+    func makecsvrow(cont:CrawlBlock) -> String {
         
-        func cleanItUp(_ r:CrawlingElement, f:(String)->(String)) -> String {
+        func cleanItUp(_ r:CrawlBlock, f:(String)->(String)) -> String {
             let z =
             """
             \(f(r.name ?? "")),\(f(r.artist ?? "")),\(f(r.album ?? "")),\(f(r.songurl)),\(f(r.albumurl ?? "")),\(f(r.cover_art_url ?? ""))
@@ -223,7 +237,7 @@ final class RecordExporter {
 ]
 """)
     }
-    func addRowToExportStream(cont:CrawlingElement) {
+    func addRowToExportStream(cont:CrawlBlock) {
         
         let stuff = makecsvrow(cont:cont )
         print(stuff , to: &csvOutputStream )

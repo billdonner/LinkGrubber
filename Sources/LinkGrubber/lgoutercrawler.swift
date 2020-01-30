@@ -24,15 +24,16 @@ final class OuterCrawler {
     
     init(roots:[RootStart],transformer:Transformer,
         pageMakerFunc: @escaping PageMakerFunc,
+        matcherFunc : @escaping  MatchingFunc,
          loggingLevel:LoggingLevel,
          lgFuncs:LgFuncs ,
          returnsResults:@escaping ReturnsGrubberStats)
         throws {
             self.transformer = transformer
-         self.pageMakerFunc = pageMakerFunc
+            self.pageMakerFunc = pageMakerFunc
             self.krawlInfo = KrawlingInfo()
             self.returnsCrawlResults = returnsResults
-            let lk = ScrapingMachine(scraper: transformer.scraper)
+            let lk = ScrapingMachine(scraper: transformer.scraper,matcher:matcherFunc)
             // we start the inner crawler right here
             self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, pagemaker: pageMakerFunc ,logLevel:loggingLevel)
             startMeUp(roots, icrawler: icrawler )
@@ -66,8 +67,11 @@ final class OuterCrawler {
  
 final class ScrapingMachine:NSObject {
     private var scraperx:PageScraperFunc
-    init(scraper:@escaping PageScraperFunc) {
+        private var matchx:MatchingFunc
+    
+    init(scraper:@escaping PageScraperFunc, matcher:@escaping MatchingFunc) {
         self.scraperx = scraper
+        self.matchx = matcher
         super.init()
     }
     // this could be improved to work asynchronously in the background??
@@ -83,8 +87,9 @@ final class ScrapingMachine:NSObject {
     }
     
     // this is the major entry point
-    func scrapeFromURL( _ urlget:URL,
-                        parsingTechnique:ParseTechnique) -> ParseResults? {
+    func scrapeFromURL( _ urlget:URL) -> ParseResults? {
+        
+        guard matchx(urlget) else { return nil }
         
         let  (  _, html) = fetchHTMLFromURL(urlget)
         do {
@@ -94,7 +99,7 @@ final class ScrapingMachine:NSObject {
             }
             // [4] parse the incoming and stash the results, regardless
             // note = html must already be filled in and hence urget is for info
-            let  parseResultz  =  scraperx(parsingTechnique,urlget,   html)
+            let  parseResultz  =  scraperx( urlget,   html)
             
             guard let parseResults = parseResultz else {
                 return nil
@@ -105,7 +110,6 @@ final class ScrapingMachine:NSObject {
             switch status {
             case .succeeded: 
                    return ParseResults(url:urlget,
-                                 technique: parsingTechnique,
                                  status: .succeeded, pagetitle:parseResultz!.pagetitle, links:parseResults.links,  props: parseResults.props,  tags: [])
                
             default: return nil

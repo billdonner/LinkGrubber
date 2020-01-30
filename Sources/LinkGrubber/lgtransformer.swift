@@ -4,8 +4,6 @@
 
 import Foundation
 
-
-
 public class Fav {
     public let name: String
     public let url: String
@@ -21,8 +19,11 @@ extension Array where Element == String  {
         self.firstIndex(of: f) != nil
         }
     }
-
-public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,  String , inout [LinkElement]) throws -> String
+public struct ScrapeAndAbsorbBlock {
+    let title: String
+    let links:[LinkElement]
+}
+public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,String ) throws -> ScrapeAndAbsorbBlock
 
 
 open class LgFuncs {
@@ -74,31 +75,13 @@ open class LgFuncs {
     }
 }
 
-final class  CrawlingElement:Codable {
-    
-    //these are the only elements moved into the output stream
-    
-    var name:String? = ""
-    var artist:String? = ""
-    var albumurl:String? = ""
-    var songurl:String = ""
-    var cover_art_url:String? = ""
-    var album : String?  {
-        if let alurl = albumurl {
-            let blurl = alurl.hasSuffix("/") ? String( alurl.dropLast()  ) : alurl
-            if  let aname = blurl.components(separatedBy: "/").last {
-                return aname
-            }
-        }
-        return albumurl
-    }
-}
+
 
 
 final class Transformer:NSObject {
     var lgFuncs:LgFuncs
     var recordExporter : RecordExporter!
-    var cont = CrawlingElement()
+    private var crawlblock = CrawlBlock()
     var firstTime = true
     var fsProt: FileSiteProt
     
@@ -123,33 +106,33 @@ final class Transformer:NSObject {
         for link in pr.links {
             let href =  link.href!.absoluteString
             if !href.hasSuffix("/" ) {
-                cont.albumurl = url.absoluteString
-                cont.name = link.title
-                cont.songurl = href
-                cont.cover_art_url = ""
-                mdlinks.append(Fav(name:cont.name ?? "??", url:cont.songurl,comment:""))
-                recordExporter.addRowToExportStream(cont: cont)
+                crawlblock.albumurl = url.absoluteString
+                crawlblock.name = link.title
+                crawlblock.songurl = href
+                crawlblock.cover_art_url = ""
+                mdlinks.append(Fav(name:crawlblock.name ?? "??", url:crawlblock.songurl,comment:""))
+                recordExporter.addRowToExportStream(cont: crawlblock)
             }
         }
         
         // if we are writing md files for Publish
-        if let aurl = cont.albumurl {
+        if let aurl = crawlblock.albumurl {
             // figure out the coverarturl here, either take the default for the bandsite or take the first one in the mdlinks
             for alink in mdlinks {
                let x =  alink.url.components(separatedBy: ".").last ?? "fail"
                 if lgFuncs.isImageExtension(x) {
-                    cont.cover_art_url = alink.url
+                    crawlblock.cover_art_url = alink.url
                     break
                 }
             }
             
-            if cont.cover_art_url == "" {
-                cont.cover_art_url = imgurl
+            if crawlblock.cover_art_url == "" {
+                crawlblock.cover_art_url = imgurl
             }
             
             let props = CustomPageProps(isInternalPage: false,
                                       urlstr: aurl,
-                                      title: cont.name ?? "???",
+                                      title: crawlblock.name ?? "???",
                                       tags:  pr.tags)
             
             return OnePageGuts(props: props,links: mdlinks)
@@ -158,16 +141,9 @@ final class Transformer:NSObject {
         
         return nil
     }//incorporateParseResults
+
     
-    func scraper(_ parseTechnique:ParseTechnique, url theURL:URL,  html: String)   -> ParseResults? {
-        
-        var title: String = ""
-        var links : [LinkElement] = []
-         
-        guard theURL.absoluteString.hasPrefix(fsProt.matchingURLPrefix) else
-        {
-            return nil
-        }
+    func scraper( url theURL:URL,  html: String)   -> ParseResults? {
         
         // starts here
         if firstTime {
@@ -178,17 +154,16 @@ final class Transformer:NSObject {
         do {
             assert(html.count != 0 , "No html to parse")
                // try lgfuncs(lgFuncs:lgFuncs,theURL: theURL,html: html,links: &links)
-            title = try lgFuncs.scrapeRestore(lgFuncs,theURL,html,&links)
+           let scrblock = try lgFuncs.scrapeRestore(lgFuncs,theURL,html )
+            return  ParseResults(url: theURL,
+                                 status: .succeeded, pagetitle: scrblock.title,
+                                        links: scrblock.links, props:[], tags: [])
         }
         catch {
-            print("cant parse error is \(error)")
-            return  ParseResults(url: theURL,  technique: parseTechnique,
-                                 status: .failed(code: 0), pagetitle:title,
-                                 links: links, props: [], tags: [])
+            print("cant parse \(theURL) error is \(error)")
+            return  nil
         }
         
-        return  ParseResults(url: theURL, technique: parseTechnique,
-                             status: .succeeded, pagetitle: title,
-                             links: links, props:[], tags: [])
+       
     }
 }

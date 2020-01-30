@@ -9,57 +9,59 @@ import Foundation
 
 // main entry point for public Linkgrubber.grub() call
 
-
+public typealias MatchingFunc =  (URL)->Bool
 
 
 final public class LinkGrubber
 {
-
+    
     static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
         return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
     }
-
+    
     static func kleenURLString(_ url: URLFromString) -> URLFromString?{
         let original = url.string
         let newer = original.replacingOccurrences(of: "%20", with: "+")
         return URLFromString(newer)
     }
-
+    
     static func kleenex(_ f:String)->String {
         return f.replacingOccurrences(of: ",", with: "!")
     }
     
-     public init( ) {
- 
-     }
+    public init( ) {
+        
+    }
     
     private var recordExporter =  RecordExporter()
     
     public  func grub(
-                      roots:[RootStart],
-                      opath:String,
-                      params: FileSiteProt,
-                      pageMakerFunc : @escaping PageMakerFunc,
-                      finally:@escaping ReturnsGrubberStats) throws {
+        roots:[RootStart],
+        opath:String,
+        params: FileSiteProt,
+        pageMakerFunc : @escaping PageMakerFunc,
+        matchingFunc: @escaping MatchingFunc,
+        finally:@escaping ReturnsGrubberStats) throws {
         
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
             else {  fatalError("cant fix outpath") }
         
         let transformer =  Transformer(recordExporter:recordExporter,
-                               fsProt: params,
-                               lgFuncs:  params.lgFuncs)
-
+                                       fsProt: params,
+                                       lgFuncs:  params.lgFuncs)
+        
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
-                               pageMakerFunc:pageMakerFunc,
-                               lgFuncs: params.lgFuncs ,// transformer
-          
+                             pageMakerFunc:pageMakerFunc,
+                               matcherFunc:matchingFunc,
+                             lgFuncs: params.lgFuncs ,// transformer
+            
             csvoutPath: LocalFilePath(fixedPath+".csv"),
             jsonoutPath: LocalFilePath(fixedPath+".json"),
             logLevel: params.logLevel)// krawlstream
         
-        rm.startCrawling( roots:roots,loggingLevel: params.logLevel,finally:finally )
+        try rm.startCrawling( roots:roots,loggingLevel: params.logLevel,finally:finally )
     }
 }
 fileprivate class KrawlStream : NSObject {
@@ -69,11 +71,13 @@ fileprivate class KrawlStream : NSObject {
     var transformer:Transformer
     var crawlStats:KrawlingInfo
     var pageMakerFunc: PageMakerFunc
+    var matcherFunc: MatchingFunc
     var lgFuncs:LgFuncs
     
     required   init (roots:[RootStart],
                      transformer:Transformer,
                      pageMakerFunc: @escaping PageMakerFunc,
+                     matcherFunc: @escaping MatchingFunc,
                      lgFuncs:LgFuncs,
                      csvoutPath:LocalFilePath,
                      jsonoutPath:LocalFilePath,
@@ -85,6 +89,7 @@ fileprivate class KrawlStream : NSObject {
         self.logLevel = logLevel
         self.crawlStats = KrawlingInfo()
         self.pageMakerFunc = pageMakerFunc
+        self.matcherFunc = matcherFunc
         //bootstrapExportDir()
         //
         do {
@@ -113,20 +118,16 @@ fileprivate class KrawlStream : NSObject {
     
     func startCrawling( roots:[RootStart],
                         loggingLevel:LoggingLevel,
-                        finally:@escaping ReturnsGrubberStats) {
+                        finally:@escaping ReturnsGrubberStats) throws {
         
-        do {
-            let _ = try OuterCrawler (roots: roots,transformer:transformer, pageMakerFunc: pageMakerFunc,
-                                      loggingLevel: loggingLevel, lgFuncs: lgFuncs )
-            { crawlResult in
-                // here we are done, reflect it back upstream
-                print(crawlResult.describe())
-                // now here must unwind back to original caller
-                finally(crawlResult)
-            }
+        let _ = try OuterCrawler (roots: roots,transformer:transformer, pageMakerFunc: pageMakerFunc, matcherFunc:matcherFunc,
+                                  loggingLevel: loggingLevel, lgFuncs: lgFuncs )
+        { crawlResult in
+            // here we are done, reflect it back upstream
+            print(crawlResult.describe())
+            // now here must unwind back to original caller
+            finally(crawlResult)
         }
-        catch {
-            invalidCommand(444);exit(0)
-        }
+        
     }
 }

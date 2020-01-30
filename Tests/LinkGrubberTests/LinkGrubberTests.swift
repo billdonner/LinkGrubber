@@ -11,12 +11,12 @@ final class LinkGrubberTests: XCTestCase {
     }
     
     // test params
-    static func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, title: String , links:inout [LinkElement]) throws -> String {
+    static func testscraperfunc  (_  lgFuncs:LgFuncs,url: URL, s: String ) throws -> ScrapeAndAbsorbBlock {
         print("[LinkGrubber] scraping \(url)")
-        return "linkgrubber.defaults()"
+        return ScrapeAndAbsorbBlock(title: "linkgrubber.defaults()",links: [])
     }
     
-   static func defaults() -> LgFuncs {
+    static func defaults() -> LgFuncs {
         return LgFuncs(imageExtensions: ["jpg","jpeg","png"],
                        audioExtensions: ["mp3","mpeg","wav"],
                        markdownExtensions: ["md", "markdown", "txt", "text"],
@@ -31,11 +31,16 @@ final class LinkGrubberTests: XCTestCase {
         XCTAssertEqual(LinkGrubberHello().text, "Hello, World!")
     }
     
+    var matchf:MatchingFunc!
     var pmf:PageMakerFunc!
     var testparams: TestParams!
     
     override func setUp() {
+        func matchingfunc (theURL:URL) -> Bool {
+            return  theURL.absoluteString.hasPrefix("https://billdonner.github.io/LinkGrubber/")
+        }
         
+        matchf = matchingfunc
         pmf  = {props,favs in
             print(props," ",favs.count)
         }
@@ -48,7 +53,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"empty-site",
                                        urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/empty-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams, pageMakerFunc:  pmf )
+                      params: testparams, pageMakerFunc:  pmf, matchingFunc: matchf)
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -67,7 +72,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"zero-site",
                                        urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/zero-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams,  pageMakerFunc: pmf )
+                      params: testparams,  pageMakerFunc: pmf, matchingFunc: matchf )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -84,7 +89,7 @@ final class LinkGrubberTests: XCTestCase {
                 .grub(roots:[RootStart(name:"one-site",
                                        urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
-                      params: testparams,  pageMakerFunc: pmf )
+                      params: testparams,  pageMakerFunc: pmf, matchingFunc: matchf )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }
@@ -101,7 +106,7 @@ final class LinkGrubberTests: XCTestCase {
                                        urlstr:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/two-site/")],
                       opath:"/Users/williamdonner/LocalScratch/aabonus",
                       params: testparams,
-                      pageMakerFunc: pmf   )
+                      pageMakerFunc: pmf, matchingFunc: matchf   )
                 { crawlerstats in
                     print("\(crawlerstats.count1) pages")
             }

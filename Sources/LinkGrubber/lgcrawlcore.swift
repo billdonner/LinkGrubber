@@ -31,35 +31,14 @@ enum CrawlState {
 }
 public struct  RootStart : Codable  {
     public let name: String
-     public let technique:ParseTechnique
     public    let urlstr: String
     
-    public init(name:String, urlstr:String, technique: ParseTechnique  = .parseTop ){
+    public init(name:String, urlstr:String ){
         self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.technique = technique; self.urlstr = urlstr;
+       self.urlstr = urlstr
     }
 }
 // freestanding
-//var LibraryDirectoryURL:URL {
-//    return  URL(fileURLWithPath:  NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] as String )//+ "/" + "_export")// distinguish
-//}
-//var ExportDirectoryURL:URL {
-//    return  URL(fileURLWithPath: "/Users/williamdonner/hd")//+ "/" + "_export")// distinguish
-//}
-//func bootstrapExportDir() {
-//    //touched in crawler pile
-//    if !FileManager.default.fileExists(atPath:  ExportDirectoryURL.absoluteString) {
-//        createDir(url:ExportDirectoryURL)
-//    }
-//}
-//func createDir( url:URL) {
-//    do {
-//        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
-//    } catch   {
-//        fatalError("****MUST STOP CANT CREATE DIRECTORY \(url) ***** \(error)")
-//    }
-//}
-
 
 // to pretty up for testing tweak the error string from cocoa into something json compatible (no duble quotes)
 func safeError(error:Error) -> String {
@@ -128,27 +107,9 @@ private enum ScrapeTechnique {
     case forcedFail
     case normal //was kannlinks...
 }
-public enum ParseTechnique :String, Codable {
-    //case passThru
-    case parseTop
-    case parseLeaf
-    case indexDir
-    private func scrapeTechniqueFor() -> ScrapeTechnique
-    {
-        switch self {
-        case .parseTop:
-            return ScrapeTechnique.normal
-        case .parseLeaf:
-            return ScrapeTechnique.normal
-        case .indexDir:
-            return ScrapeTechnique.forcedFail
-//        case .passThru:
-//            return scrapeTechniqueFor()
-        }
-    }
-}
+ 
 
-typealias PageScraperFunc = (ParseTechnique,URL,String)->ParseResults?
+typealias PageScraperFunc = ( URL,String)->ParseResults?
  
 // scraping is not  Specific to any 3rd party libraries, custom scraping in the custom package
  

@@ -47,12 +47,12 @@ import Foundation
     }
     
     
-    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   pmf:PageMakerFunc, didFinishUserCall: inout Bool ) {
+    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   pmf:PageMakerFunc) {
         while crawlState == .crawling {
             if items.count == 0 {
                 crawlState = .done
                 
-                innerCrawler.crawlDone( stats, &didFinishUserCall,finally)
+                innerCrawler.crawlDone( stats,finally)
                 return // ends here
             }
             // get next to process
@@ -62,7 +62,7 @@ import Foundation
             // squeeze down before crawling to keep memory reasonable
             autoreleasepool {
                 do{
-              let opg =  try innerCrawler.crawlOne(rootURL: newStart, technique:.parseTop ,stats:stats )
+              let opg =  try innerCrawler.crawlOne(rootURL: newStart ,stats:stats )
                 // now publish the guts
                 if let opg = opg {
                     try pmf(opg.props,opg.links)
@@ -103,28 +103,24 @@ final class InnerCrawler : NSObject {
     func addToCrawlList(_ f:URL ) {
         ct.addToListUnquely(f)
     }
-    func crawlDone( _ crawlerContext: KrawlingInfo, _ didFinishUserCall: inout Bool, _ finally: ReturnsCrawlStats) {
+    func crawlDone( _ crawlerContext: KrawlingInfo,  _ finally: ReturnsCrawlStats) {
         // here we should output the very last trailer record
         //        print("calling whendone from crawldone from crawlingcore with crawlcontext \(crawlerContext)  ")
         finally( crawlerContext)// everything alreadt passed
-        didFinishUserCall = true
     }
     
     
-    func crawlOne(rootURL:URL,technique:ParseTechnique,stats:KrawlingInfo ) throws -> OnePageGuts? {
+    func crawlOne(rootURL:URL, stats:KrawlingInfo ) throws -> OnePageGuts? {
         
         // this is really where the action starts, we crawl from RootStart
         
         // the baseURL for the crawling hierarchy if any, is gleened from RootStart
         
         let topurlstr = URLFromString(rootURL.absoluteString)
-        
-        switch technique {
-            
-        case .parseTop:
+    
             
             // in this case the brandujrl is the topurl
-            guard let parserez =  self.loadAndScrape(rootURL, technique:.parseTop) else {
+            guard let parserez =  self.grubber.scrapeFromURL(rootURL)  else {
                 print ("load and scrape returned zilch")
                 return nil
             }
@@ -159,40 +155,22 @@ final class InnerCrawler : NSObject {
                         break 
                     }
                 }//roots for each
-            let guts = try transformer.incorporateParseResults(pr: parserez, pageMakerFunc:  pagemakerfunc)
+             let guts = try transformer.incorporateParseResults(pr: parserez, pageMakerFunc:  pagemakerfunc)
                 return guts
-            
-        case .parseLeaf:
-            
-           fatalError("Never get here")
-            
-//            self.loadAndScrape(rootURL,  technique:.parseLeaf) {leafparserez in
-//                if self.crawloptions == .verbose  {  print("\(self.ct.items.count),",terminator:"")
-//                    fflush(stdout)
-//                }
-                //exportone(leafparserez)
-        
-        case .indexDir:
-            consoleIO.writeMessage("> indexDir support coming soon \(topurlstr)",to:.error)
-//        case .passThru:
-//            consoleIO.writeMessage("> passthru \(topurlstr)",to:.error)
-            
-        }
-        return nil
+  
     }
     
     func bigCrawlLoop(crawlStats:KrawlingInfo, finally:@escaping ReturnsCrawlStats) {
+         
+//        var savedWhenDone = finally
         
-        var didFinishUserCall = false
-        var savedWhenDone = finally
-        
-        defer {
-            // if we are ever really ever gonna leave via return, perhaps with out calling when done, it means WE ARE NOT DONE, just gonna a set a tiny timer to let things unwind then call the loope again
-            if didFinishUserCall == false {
-                // we never returned to the user and we are not going to do that instead, delay a bit to let closures unwind?
-                
-            }
-        }
+//        defer {
+//            // if we are ever really ever gonna leave via return, perhaps with out calling when done, it means WE ARE NOT DONE, just gonna a set a tiny timer to let things unwind then call the loope again
+//            if didFinishUserCall == false {
+//                // we never returned to the user and we are not going to do that instead, delay a bit to let closures unwind?
+//
+//            }
+//        }
         
         // the places come in from the config file when it is parsed so add them to the crawl list now
         places.forEach(){ place  in
@@ -200,18 +178,12 @@ final class InnerCrawler : NSObject {
             addToCrawlList(url)
         }
         
-        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self, pmf: pagemakerfunc, didFinishUserCall: &didFinishUserCall)
+        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self, pmf: pagemakerfunc)
     }
 }
 
 extension InnerCrawler {
-    private  func loadAndScrape(_ rootURL:URL,
-                                technique:ParseTechnique) -> ParseResults?
-    {
-         
-       return grubber.scrapeFromURL(rootURL,  parsingTechnique: technique)
  
-    }
     private func outString (_ s:String) {
         print(s)
     }
