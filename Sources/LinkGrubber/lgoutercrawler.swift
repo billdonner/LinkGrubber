@@ -8,34 +8,26 @@
 import Foundation
 
 // nothing public here
-struct OnePageGuts {
-    let props : CustomPageProps
-    let links : [Fav]
-}
 
 final class OuterCrawler {
     private var returnsCrawlResults : ReturnsGrubberStats
     private var icrawler : InnerCrawler
     private var krawlInfo : KrawlingInfo
     private var transformer:Transformer
-    private var pageMakerFunc:  PageMakerFunc //  Audio(bandfacts: bandSiteParams).makeAudioListMarkdown
-    
-
+    private var lgFuncs:LgFuncProts
     
     init(roots:[RootStart],transformer:Transformer,
-        pageMakerFunc: @escaping PageMakerFunc,
-        matcherFunc : @escaping  MatchingFunc,
          loggingLevel:LoggingLevel,
-         lgFuncs:LgFuncs ,
+         lgFuncs:LgFuncProts ,
          returnsResults:@escaping ReturnsGrubberStats)
         throws {
             self.transformer = transformer
-            self.pageMakerFunc = pageMakerFunc
+            self.lgFuncs = lgFuncs
             self.krawlInfo = KrawlingInfo()
             self.returnsCrawlResults = returnsResults
-            let lk = ScrapingMachine(scraper: transformer.scraper,matcher:matcherFunc)
+            let lk = ScrapingMachine(scraper: transformer.scraper,matcher:lgFuncs.matchingFunc )
             // we start the inner crawler right here
-            self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, pagemaker: pageMakerFunc ,logLevel:loggingLevel)
+            self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, lgFuncs: lgFuncs ,logLevel:loggingLevel)
             startMeUp(roots, icrawler: icrawler )
     }
 
@@ -110,7 +102,7 @@ final class ScrapingMachine:NSObject {
             switch status {
             case .succeeded: 
                    return ParseResults(url:urlget,
-                                 status: .succeeded, pagetitle:parseResultz!.pagetitle, links:parseResults.links,  props: parseResults.props,  tags: [])
+                                 status: .succeeded, pagetitle:parseResultz!.pagetitle, links:parseResults.links, tags: [])
                
             default: return nil
             

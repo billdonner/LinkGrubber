@@ -1,5 +1,5 @@
 # LinkGrubber
-0.1.19a
+0.1.20
 
 
 <p align="center">
@@ -27,33 +27,51 @@ My Static Websites, built on Publish from John Sundell, generates MarkDown Files
 
 
 ```swift 
-
-  class TestParams: FileSiteProt {
-    var pathToContentDir : String  = ""
-    var pathToResourcesDir: String  = ""
-    var pathToOutputDir: String  = ""
-    var matchingURLPrefix : String = ""
-    var specialFolderPaths: [String] = []
+struct LgFuncs: LgFuncProts {
+    
+    func scrapeAndAbsorbFunc ( theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
+        try kannaScrapeAndAbsorb ( lgFuncs: self,theURL:theURL, html:html )
+    }
+    func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> () {
+       // print ("MAKING PAGE with props \(props) linkscount: \(links)")
+    }
+    func matchingFunc(_ u: URL) -> Bool {
+        return  true//u.absoluteString.hasPrefix("https://billdonner.github.io/LinkGrubber/")
+    }
+    func isImageExtensionFunc (_ s:String) -> Bool {
+        ["jpg","jpeg","png"].includes(s)
+    }
+    private   func isAudioExtensionFunc(_ s:String) -> Bool {
+        ["mp3","mpeg","wav"].includes(s)
+    }
+    private    func isMarkdownExtensionFunc(_ s:String) -> Bool{
+        ["md", "markdown", "txt", "text"].includes(s)
+    }
+    
+    func isNoteworthyExtensionFunc(_ s: String) -> Bool {
+        isImageExtensionFunc(s) || isMarkdownExtensionFunc(s)
+    }
+    func isInterestingExtensionFunc (_ s:String) -> Bool {
+        isImageExtensionFunc(s) || isAudioExtensionFunc(s)
+    }
 }
 
 
-                  let pmf:PageMakerFuncSignature = {a,b,c,d,e in
-                      print(a,b,e.count)
-                  }
-                  let testparams = TestParams()
-                  do {
-                      let _ = try LinkGrubber(pageMakerFunc: pmf)
-                          .grub(roots:[RootStart(name:"1/2 dead", urlstr:"https://billdonner.com/linkgrubber/empty-site")],
-                                opath:"/Users/williamdonner/LocalScratch/aabonus",
-                                params: testparams,
-                                logLevel:.none)
-                          { crawlerstats in
-                              print("\(crawlerstats.count1) pages")
-                      }
-                  }
-                  catch {
-                      print("couldnt grub \(error)")
-                  }
+  
+        do {
+            let _ = try LinkGrubber()
+                .grub(roots:[rootstart],
+                      opath:opath,
+                      logLevel: LoggingLevel.verbose,
+                      lgFuncs: lgFuncs)
+                { crawlerstats in
+                    self.grubstats = crawlerstats
+            }
+        }
+        catch {
+            print("couldnt grub \(error)")
+        }
+    
 ```
 
 

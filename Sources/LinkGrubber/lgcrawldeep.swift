@@ -9,12 +9,11 @@ import Foundation
 
 // nothing public here
 
- final class CrawlTable {
-
+final class CrawlTable {
+    
     private  var crawlCountPeak: Int = 0
     private  var crawlCount = 0 //    var urlstouched: Int = 0
     private  var crawlState :  CrawlState = .crawling
-    
     
     //
     // urls serviced from the top of this list
@@ -35,7 +34,7 @@ import Foundation
             crawlCount += 1
             let now = items.count
             if now > crawlCountPeak { crawlCountPeak = now }
-            //print("----added \(crawlCount) -  \(urlstr) to crawllist \(now) \(crawlCountPeak)")
+           //// print("----added \(crawlCount) -  \(urlstr) to crawllist \(now) \(crawlCountPeak)")
             
         }
     }
@@ -47,7 +46,7 @@ import Foundation
     }
     
     
-    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   pmf:PageMakerFunc) {
+    fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   lgFuncs:LgFuncProts) {
         while crawlState == .crawling {
             if items.count == 0 {
                 crawlState = .done
@@ -62,11 +61,11 @@ import Foundation
             // squeeze down before crawling to keep memory reasonable
             autoreleasepool {
                 do{
-              let opg =  try innerCrawler.crawlOne(rootURL: newStart ,stats:stats )
-                // now publish the guts
-                if let opg = opg {
-                    try pmf(opg.props,opg.links)
-                }
+                    let opg =  try innerCrawler.crawlOne(rootURL: newStart ,stats:stats )
+                    // now publish the guts
+                    if let opg = opg {
+                        try lgFuncs.pageMakerFunc(opg.props,opg.links)
+                    }
                 }
                 catch {
                     print("cant crawl \(error)")
@@ -82,19 +81,32 @@ final class InnerCrawler : NSObject {
     private(set)  var ct =  CrawlTable()
     private var crawloptions: LoggingLevel
     private  var transformer:Transformer
-    private var pagemakerfunc: PageMakerFunc
+    private var lgFuncs : LgFuncProts
     private(set) var grubber:ScrapingMachine
     private(set) var places: [RootStart] = [] // set by crawler
     private var first = true
     
-    init(roots:[RootStart], grubber:ScrapingMachine,transformer:Transformer, pagemaker:@escaping PageMakerFunc,logLevel:LoggingLevel = .none) throws {
+    init(roots:[RootStart],
+         grubber:ScrapingMachine,
+         transformer:Transformer,
+         lgFuncs:LgFuncProts,
+         logLevel:LoggingLevel = .none) throws {
         self.places = roots
         self.grubber = grubber
         self.crawloptions = logLevel
         self.transformer = transformer
-        self.pagemakerfunc = pagemaker
+        self.lgFuncs = lgFuncs
     }
-    
+}
+extension InnerCrawler {
+    func bigCrawlLoop(crawlStats:KrawlingInfo, finally:@escaping ReturnsCrawlStats) {
+        // the places come in from the config file when it is parsed so add them to the crawl list now
+        places.forEach(){ place  in
+            guard  let url = URL(string:place.urlstr) else { fatalError() }
+            addToCrawlList(url)
+        }
+        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self,   lgFuncs:lgFuncs)
+    }
     
     func crawlingStats()->(Int,Int) {
         return ct.crawlStats()
@@ -117,73 +129,47 @@ final class InnerCrawler : NSObject {
         // the baseURL for the crawling hierarchy if any, is gleened from RootStart
         
         let topurlstr = URLFromString(rootURL.absoluteString)
-    
-            
-            // in this case the brandujrl is the topurl
-            guard let parserez =  self.grubber.scrapeFromURL(rootURL)  else {
-                print ("load and scrape returned zilch")
-                return nil
-            }
-                // take all these urls and put them on the end of the crawl list as Leafs
-                guard let _ = parserez.url else {
-                    return nil
-                }
-                
-                guard parserez.status == .succeeded else {
-                    stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-                     return nil
-                }
-                guard  parserez.links.count > 0 else {
-                    stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-                     return nil
-                }
-                
-                stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
-                if self.crawloptions == .verbose  {
-                    print("\(self.ct.items.count),",terminator:"")//,\u{001B}[;m
-                    fflush(stdout)
-                }
-                
-                parserez.links.forEach(){ linkElement in
-                    switch linkElement.linktype {
-                    case .hyperlink:
-                        if  let z = linkElement.href,
-                            z.pathExtension == "" {
-                            self.addToCrawlList(z)
-                        }
-                    case .leaf:
-                        break 
-                    }
-                }//roots for each
-             let guts = try transformer.incorporateParseResults(pr: parserez, pageMakerFunc:  pagemakerfunc)
-                return guts
-  
-    }
-    
-    func bigCrawlLoop(crawlStats:KrawlingInfo, finally:@escaping ReturnsCrawlStats) {
-         
-//        var savedWhenDone = finally
-        
-//        defer {
-//            // if we are ever really ever gonna leave via return, perhaps with out calling when done, it means WE ARE NOT DONE, just gonna a set a tiny timer to let things unwind then call the loope again
-//            if didFinishUserCall == false {
-//                // we never returned to the user and we are not going to do that instead, delay a bit to let closures unwind?
-//
-//            }
-//        }
-        
-        // the places come in from the config file when it is parsed so add them to the crawl list now
-        places.forEach(){ place  in
-            guard  let url = URL(string:place.urlstr) else { fatalError() }
-            addToCrawlList(url)
+        // in this case the brandujrl is the topurl
+        guard let parserez =  self.grubber.scrapeFromURL(rootURL)  else {
+            print ("load and scrape returned zilch")
+            return nil
+        }
+        // take all these urls and put them on the end of the crawl list as Leafs
+        guard let _ = parserez.url else {
+            return nil
         }
         
-        ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self, pmf: pagemakerfunc)
+        guard parserez.status == .succeeded else {
+            stats.addStatsBadCrawlRoot(urlstr: topurlstr)
+            return nil
+        }
+        guard  parserez.links.count > 0 else {
+            stats.addStatsBadCrawlRoot(urlstr: topurlstr)
+            return nil
+        }
+        
+        stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
+        if self.crawloptions == .verbose  {
+            print("\(self.ct.items.count),",terminator:"")//,\u{001B}[;m
+            fflush(stdout)
+        }
+        
+        parserez.links.forEach(){ linkElement in
+            switch linkElement.linktype {
+            case .hyperlink:
+                if  let z = linkElement.href,
+                    z.pathExtension == "" {
+                    self.addToCrawlList(z)
+                }
+            case .leaf:
+                break
+            }
+        }//roots for each
+        return try transformer.incorporateParseResults(pr: parserez)
     }
-}
-
-extension InnerCrawler {
- 
+    
+    
+    
     private func outString (_ s:String) {
         print(s)
     }
@@ -209,8 +195,3 @@ extension InnerCrawler {
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + delay, execute: completion)
     }
 }
-
-
-
-
-

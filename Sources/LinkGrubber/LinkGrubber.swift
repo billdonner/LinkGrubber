@@ -8,13 +8,12 @@
 import Foundation
 
 // main entry point for public Linkgrubber.grub() call
-
-public typealias MatchingFunc =  (URL)->Bool
-
+struct LinkGrubberHello {
+    var text = "Hello, World!"
+}
 
 final public class LinkGrubber
 {
-    
     static func partFromUrlstr(_ urlstr:URLFromString) -> URLFromString {
         return urlstr//URLFromString(urlstr.url?.lastPathComponent ?? "partfromurlstr failure")
     }
@@ -38,30 +37,29 @@ final public class LinkGrubber
     public  func grub(
         roots:[RootStart],
         opath:String,
-        params: FileSiteProt,
-        pageMakerFunc : @escaping PageMakerFunc,
-        matchingFunc: @escaping MatchingFunc,
+        logLevel:LoggingLevel,
+        lgFuncs: LgFuncProts,
         finally:@escaping ReturnsGrubberStats) throws {
         
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
             else {  fatalError("cant fix outpath") }
         
         let transformer =  Transformer(recordExporter:recordExporter,
-                                       fsProt: params,
-                                       lgFuncs:  params.lgFuncs)
+                                   
+                                       lgFuncs: lgFuncs)
         
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
-                             pageMakerFunc:pageMakerFunc,
-                               matcherFunc:matchingFunc,
-                             lgFuncs: params.lgFuncs ,// transformer
+                             lgFuncs: lgFuncs ,// transformer
             
             csvoutPath: LocalFilePath(fixedPath+".csv"),
             jsonoutPath: LocalFilePath(fixedPath+".json"),
-            logLevel: params.logLevel)// krawlstream
-        
-        try rm.startCrawling( roots:roots,loggingLevel: params.logLevel,finally:finally )
+            logLevel: logLevel)// krawlstream
+        let q = DispatchQueue( label:"background", qos:.background)
+        q.async {
+            try! rm.startCrawling( roots:roots,loggingLevel: logLevel,finally:finally )
+        }
     }
 }
 fileprivate class KrawlStream : NSObject {
@@ -70,15 +68,11 @@ fileprivate class KrawlStream : NSObject {
     var logLevel:LoggingLevel
     var transformer:Transformer
     var crawlStats:KrawlingInfo
-    var pageMakerFunc: PageMakerFunc
-    var matcherFunc: MatchingFunc
-    var lgFuncs:LgFuncs
+    var lgFuncs:LgFuncProts
     
     required   init (roots:[RootStart],
                      transformer:Transformer,
-                     pageMakerFunc: @escaping PageMakerFunc,
-                     matcherFunc: @escaping MatchingFunc,
-                     lgFuncs:LgFuncs,
+                     lgFuncs:LgFuncProts,
                      csvoutPath:LocalFilePath,
                      jsonoutPath:LocalFilePath,
                      logLevel:LoggingLevel) {
@@ -88,8 +82,6 @@ fileprivate class KrawlStream : NSObject {
         self.lgFuncs = lgFuncs
         self.logLevel = logLevel
         self.crawlStats = KrawlingInfo()
-        self.pageMakerFunc = pageMakerFunc
-        self.matcherFunc = matcherFunc
         //bootstrapExportDir()
         //
         do {
@@ -120,7 +112,7 @@ fileprivate class KrawlStream : NSObject {
                         loggingLevel:LoggingLevel,
                         finally:@escaping ReturnsGrubberStats) throws {
         
-        let _ = try OuterCrawler (roots: roots,transformer:transformer, pageMakerFunc: pageMakerFunc, matcherFunc:matcherFunc,
+        let _ = try OuterCrawler (roots: roots,transformer:transformer,
                                   loggingLevel: loggingLevel, lgFuncs: lgFuncs )
         { crawlResult in
             // here we are done, reflect it back upstream
