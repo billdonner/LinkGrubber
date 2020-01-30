@@ -22,6 +22,10 @@ extension Array where Element == String  {
 public struct ScrapeAndAbsorbBlock {
     let title: String
     let links:[LinkElement]
+    public init(title:String,links:[LinkElement]){
+        self.title = title
+        self.links = links
+    }
 }
 public typealias ScrapeAndAbsorbFunc = ( LgFuncs, URL,String ) throws -> ScrapeAndAbsorbBlock
 
