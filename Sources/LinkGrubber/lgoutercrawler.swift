@@ -73,7 +73,7 @@ final class ScrapingMachine:NSObject {
             return (url.absoluteString,htmlstuff )
         }
         catch {
-            consoleIO.writeMessage("Cant fetch string contents of \(url)",to: .error)
+            consoleIO.writeMessage("*********Cant fetch string contents  \(error)",to: .error)
         }
         return ("","")
     }
