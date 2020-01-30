@@ -1,5 +1,5 @@
 # LinkGrubber
-0.1.18a
+0.1.18b
 
 
 <p align="center">
