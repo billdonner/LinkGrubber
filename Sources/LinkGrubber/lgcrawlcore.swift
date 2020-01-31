@@ -15,10 +15,6 @@ import var Darwin.stderr
 
 
 //MARK:-  PUBLIC
-public protocol   FileSiteProt: class {
-    var logLevel:LoggingLevel { get set }
-    var lgFuncs : LgFuncProts { get set}
-}
 
 public enum LoggingLevel {
     case none
