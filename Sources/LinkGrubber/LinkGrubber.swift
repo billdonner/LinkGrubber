@@ -9,7 +9,7 @@ import Foundation
 
 // main entry point for public Linkgrubber.grub() call
 struct LinkGrubberHello {
-    var text = "Hello, World!"
+    var text = "Hello, Goodbye!"
 }
 
 final public class LinkGrubber
