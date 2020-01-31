@@ -14,7 +14,7 @@ var traceStream : FileHandlerOutputStream!
 var consoleIO = ConsoleIO()
 
 
-final class RecordExporter {
+open class RecordExporter {
     private var first = true
     
     func makecsvheader( ) -> String {

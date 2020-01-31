@@ -11,14 +11,14 @@ extension Array where Element == String  {
         }
     }
 
-final class Transformer:NSObject {
+open class Transformer:NSObject {
     var lgFuncs:LgFuncProts
     var recordExporter : RecordExporter!
     private var crawlblock = CrawlBlock()
     var firstTime = true
     
 
-    required  init( recordExporter:RecordExporter,    lgFuncs:LgFuncProts) {
+   public required  init( recordExporter:RecordExporter,    lgFuncs:LgFuncProts) {
        
         self.lgFuncs = lgFuncs
         self.recordExporter = recordExporter
