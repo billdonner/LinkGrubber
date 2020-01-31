@@ -76,7 +76,10 @@ open class LinkGrubberStats:Equatable {
         self.status = status
     }
     func describe () -> String {
-        "\n[LinkGrubber] scanned \(added) pages, added \(count1)  rejected \(count2)  -- \(self.secsPerCycle*1000)ms per \n"
+        // if the internal status is not 200 then mark the log
+        let happyface = self.status == 200 ? "🤲🏻" : "⬇️"
+        
+       return  "\n[LinkGrubber] scanned \(added) pages, added \(count1)  skipped \(count2)  -- \(String(format:"%5.2f",self.secsPerCycle*1000))ms per page \(happyface) \n"
     }
     
 }
@@ -347,7 +350,7 @@ public  func processExtension(lgFuncs:LgFuncProts, url:URL,relativeTo:URL?)->Lin
             return nil
         }
         if lgFuncs.isNoteworthyExtensionFunc(pext){
-            print("Processing \(pext) file from \(url)")
+            ///////print("Processing \(pext) file from \(url)")
         }
     } else
     {

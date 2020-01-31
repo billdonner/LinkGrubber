@@ -44,9 +44,10 @@ final public class LinkGrubber
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
             else {  fatalError("cant fix outpath") }
         
-        let transformer =  Transformer(recordExporter:recordExporter,
-                                   
-                                       lgFuncs: lgFuncs)
+      
+        
+        
+        let transformer =  Transformer(recordExporter:recordExporter,   lgFuncs: lgFuncs)
         
         
         let rm = KrawlStream(roots:roots,
@@ -56,9 +57,18 @@ final public class LinkGrubber
             csvoutPath: LocalFilePath(fixedPath+".csv"),
             jsonoutPath: LocalFilePath(fixedPath+".json"),
             logLevel: logLevel)// krawlstream
+        
+        print("[LinkGrubber] streaming to \(LocalFilePath(fixedPath))")
         let q = DispatchQueue( label:"background", qos:.background)
         q.async {
-            try! rm.startCrawling( roots:roots,loggingLevel: logLevel,finally:finally )
+            do {
+                try rm.startCrawling( roots:roots,
+                                      loggingLevel: logLevel,
+                                      finally:finally )
+            }
+            catch {
+                print("failed to startCrawling \(error)")
+            }
         }
     }
 }

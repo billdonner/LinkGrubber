@@ -12,7 +12,7 @@ import Foundation
 final class CrawlTable {
     
     private  var crawlCountPeak: Int = 0
-    private  var crawlCount = 0 //    var urlstouched: Int = 0
+    private  var crawlCount = 0
     private  var crawlState :  CrawlState = .crawling
     
     //
@@ -79,7 +79,7 @@ final class CrawlTable {
 
 final class InnerCrawler : NSObject {
     private(set)  var ct =  CrawlTable()
-    private var crawloptions: LoggingLevel
+    private var logLevel: LoggingLevel
     private  var transformer:Transformer
     private var lgFuncs : LgFuncProts
     private(set) var grubber:ScrapingMachine
@@ -90,10 +90,10 @@ final class InnerCrawler : NSObject {
          grubber:ScrapingMachine,
          transformer:Transformer,
          lgFuncs:LgFuncProts,
-         logLevel:LoggingLevel = .none) throws {
+         logLevel:LoggingLevel) throws {
         self.places = roots
         self.grubber = grubber
-        self.crawloptions = logLevel
+        self.logLevel = logLevel
         self.transformer = transformer
         self.lgFuncs = lgFuncs
     }
@@ -103,6 +103,7 @@ extension InnerCrawler {
         // the places come in from the config file when it is parsed so add them to the crawl list now
         places.forEach(){ place  in
             guard  let url = URL(string:place.urlstr) else { fatalError() }
+              print("[LinkGrubber] scanning \(url)")
             addToCrawlList(url)
         }
         ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self,   lgFuncs:lgFuncs)
@@ -147,11 +148,13 @@ extension InnerCrawler {
             stats.addStatsBadCrawlRoot(urlstr: topurlstr)
             return nil
         }
-        
+     
         stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
-        if self.crawloptions == .verbose  {
-            print("\(self.ct.items.count),",terminator:"")//,\u{001B}[;m
+        if self.logLevel == .verbose  {
+            let pre = first ? "[LinkGrubber] tracing: ":","
+            print("\(pre)\(self.ct.items.count)",terminator:"")//,\u{001B}[;m
             fflush(stdout)
+            first = false
         }
         
         parserez.links.forEach(){ linkElement in
