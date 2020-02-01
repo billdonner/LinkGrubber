@@ -2,16 +2,16 @@ import XCTest
 @testable import LinkGrubber
 import Kanna
 
+let LOGGINGLEVEL = LoggingLevel.verbose
 // these functions must be supplied by the caller of LinkGrubber.grub()
-func scraperReturnsNothing (_  lgFuncs:LgFuncs,url: URL, s: String ) throws -> ScrapeAndAbsorbBlock {
-    print("[LinkGrubber] scraping \(url)")
-    return ScrapeAndAbsorbBlock(title: "scraperReturnsNothing",links: [])
-}
 
 // for testing only , we'll use kanna
 
 func kannaScrapeAndAbsorb (lgFuncs:LgFuncs,theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
-    func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String, links: inout [LinkElement]) {
+    
+      var encounterdLinks:[LinkElement]=[]
+    
+    func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String )  {
         if let lk = href, //link["href"] ,
             let url = URL(string:lk,relativeTo:relativeTo) ,
             let linktype = processExtension(lgFuncs: lgFuncs, url:url, relativeTo: relativeTo) {
@@ -23,27 +23,30 @@ func kannaScrapeAndAbsorb (lgFuncs:LgFuncs,theURL:URL, html:String ) throws -> S
                 let subparts = front.components(separatedBy: "-")
                 if let titl = subparts.last {
                     let titw =  titl.trimmingCharacters(in: .whitespacesAndNewlines)
-                    links.append(LinkElement(title:titw,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
+                  encounterdLinks.append(LinkElement(title:titw,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
                 }
             } else {
                 // this is what happens upstream
-                if  let txt  = txt  {
-                    links.append(LinkElement(title:txt,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
+                if  let txt  = txt  {  encounterdLinks.append(LinkElement(title:txt,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
                 }
             }
         }
     }// end of absorbLink
     let doc = try  Kanna.HTML(html: html, encoding: .utf8)
     let title = doc.title ?? "<untitled>"
-    var absorbedlinks:[LinkElement] = []
     for link in doc.xpath("//a") {
         absorbLink(href:link["href"],
                    txt:link.text,
                    relativeTo:theURL,
-                   tag: "media",links:&absorbedlinks )
+                   tag: "media")
     }
-    return ScrapeAndAbsorbBlock(title:  title, links:absorbedlinks)
+    return ScrapeAndAbsorbBlock(title:  title, links: encounterdLinks)
 }
+//fileprivate extension Array where Element == String  {
+//func includes(_ f:Element)->Bool {
+//    self.firstIndex(of: f) != nil
+//    }
+//}
 
 struct LgFuncs: LgFuncProts {
     
@@ -102,7 +105,7 @@ class LinkGrubberTests: XCTestCase {
             let _ = try LinkGrubber()
                 .grub(roots:[rootstart],
                       opath:opath,
-                      logLevel: LoggingLevel.verbose,
+                      logLevel: LOGGINGLEVEL,
                       lgFuncs: lgFuncs)
                 { crawlerstats in
                     self.grubstats = crawlerstats
@@ -144,10 +147,11 @@ class LinkGrubberTests: XCTestCase {
                    expecting: expectedResults(3,1,2))
     }
     static var allTests = [
+       
         ("testGrubber0", testGrubber0),
-        ("testGrubber1", testGrubber1),
-        ("testGrubber2", testGrubber2),
-        ("testGrubberHd2019", testGrubberHd2019),
-        ("testGrubberHdFull", testGrubberHdFull)
+               ("testGrubber1", testGrubber1),
+               ("testGrubber2", testGrubber2),
+               ("testGrubberHd2019", testGrubberHd2019),
+               ("testGrubberHdFull", testGrubberHdFull)
     ]
 }

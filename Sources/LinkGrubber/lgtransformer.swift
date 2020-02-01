@@ -8,29 +8,32 @@ import Foundation
 extension Array where Element == String  {
     func includes(_ f:Element)->Bool {
         self.firstIndex(of: f) != nil
-        }
     }
+}
 
 open class Transformer:NSObject {
     var lgFuncs:LgFuncProts
     var recordExporter : RecordExporter!
+    var logLevel:LoggingLevel
     private var crawlblock = CrawlBlock()
     var firstTime = true
     
-
-   public required  init( recordExporter:RecordExporter,    lgFuncs:LgFuncProts) {
-       
+    
+    public required  init( recordExporter:RecordExporter,    lgFuncs:LgFuncProts, logLevel:LoggingLevel) {
+        
         self.lgFuncs = lgFuncs
         self.recordExporter = recordExporter
+        self.logLevel = logLevel
         super.init()
     }
     deinit  {
         recordExporter.addTrailerToExportStream()
-       // print("[crawler] finalized csv and json streams")
+        // print("[crawler] finalized csv and json streams")
     }
     
     
     func  incorporateParseResults(pr:ParseResults,imgurl:String="") throws -> OnePageGuts? {
+        
         var mdlinks : [Fav] = []  // must reset each time !!
         // move the props into a record
         guard let url = pr.url else { fatalError() }
@@ -51,7 +54,7 @@ open class Transformer:NSObject {
         if let aurl = crawlblock.albumurl {
             // figure out the coverarturl here, either take the default for the bandsite or take the first one in the mdlinks
             for alink in mdlinks {
-               let x =  alink.url.components(separatedBy: ".").last ?? "fail"
+                let x =  alink.url.components(separatedBy: ".").last ?? "fail"
                 if lgFuncs.isImageExtensionFunc(x) {
                     crawlblock.cover_art_url = alink.url
                     break
@@ -63,39 +66,35 @@ open class Transformer:NSObject {
             }
             
             let props = CustomPageProps(isInternalPage: false,
-                                      urlstr: aurl,
-                                      title: crawlblock.name ?? "???",
-                                      tags:  pr.tags)
-            
+                                        urlstr: aurl,
+                                        title: crawlblock.name ?? "???",
+                                        tags:  pr.tags)
+            if logLevel == .verbose  {
+                let pre =  "[LinkGrubber] yield:\(mdlinks.count) tags:\(pr.tags.count)"
+                print("\(pre)")
+            }
             return OnePageGuts(props: props,links: mdlinks)
-            
-        }//writemdfiles==true
-        
+        }//let url
         return nil
     }//incorporateParseResults
-
     
-    func scraper( url theURL:URL,  html: String)   -> ParseResults? {
-        
-        // starts here
+    func scraper( url theURL:URL,  html: String)   -> ParseResults? { 
         if firstTime {
             recordExporter.addHeaderToExportStream()
             firstTime = false
         }
-        
         do {
             assert(html.count != 0 , "No html to parse")
-               // try lgfuncs(lgFuncs:lgFuncs,theURL: theURL,html: html,links: &links)
+            // try lgfuncs(lgFuncs:lgFuncs,theURL: theURL,html: html,links: &links)
             let scrblock = try lgFuncs.scrapeAndAbsorbFunc(theURL: theURL,html: html )
             return  ParseResults(url: theURL,
                                  status: .succeeded, pagetitle: scrblock.title,
-                                        links: scrblock.links,  tags: [])
+                                 links: scrblock.links,  tags: [])
         }
         catch {
             print("cant parse \(theURL) error is \(error)")
             return  nil
         }
-        
-       
     }
+    
 }

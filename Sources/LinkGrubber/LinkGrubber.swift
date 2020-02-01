@@ -43,12 +43,7 @@ final public class LinkGrubber
         
         guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
             else {  fatalError("cant fix outpath") }
-        
-      
-        
-        
-        let transformer =  Transformer(recordExporter:recordExporter,   lgFuncs: lgFuncs)
-        
+        let transformer =  Transformer(recordExporter:recordExporter,   lgFuncs: lgFuncs, logLevel:logLevel )
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
@@ -58,7 +53,7 @@ final public class LinkGrubber
             jsonoutPath: LocalFilePath(fixedPath+".json"),
             logLevel: logLevel)// krawlstream
         
-        print("[LinkGrubber] streaming to \(LocalFilePath(fixedPath))")
+        print("[LinkGrubber] streaming to \(LocalFilePath(fixedPath).path)")
         let q = DispatchQueue( label:"background", qos:.background)
         q.async {
             do {
@@ -72,6 +67,7 @@ final public class LinkGrubber
         }
     }
 }
+
 fileprivate class KrawlStream : NSObject {
     
     var roots: [RootStart]

@@ -34,7 +34,7 @@ final class CrawlTable {
             crawlCount += 1
             let now = items.count
             if now > crawlCountPeak { crawlCountPeak = now }
-           //// print("----added \(crawlCount) -  \(urlstr) to crawllist \(now) \(crawlCountPeak)")
+            //// print("----added \(crawlCount) -  \(urlstr) to crawllist \(now) \(crawlCountPeak)")
             
         }
     }
@@ -103,7 +103,7 @@ extension InnerCrawler {
         // the places come in from the config file when it is parsed so add them to the crawl list now
         places.forEach(){ place  in
             guard  let url = URL(string:place.urlstr) else { fatalError() }
-              print("[LinkGrubber] scanning \(url)")
+            print("[LinkGrubber] scanning \(url)")
             addToCrawlList(url)
         }
         ct.crawlLoop(finally: finally,stats: crawlStats, innerCrawler: self,   lgFuncs:lgFuncs)
@@ -140,23 +140,27 @@ extension InnerCrawler {
             return nil
         }
         
-        guard parserez.status == .succeeded else {
+        guard parserez.status == .succeeded &&  parserez.links.count > 0 else {
             stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-            return nil
-        }
-        guard  parserez.links.count > 0 else {
-            stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-            return nil
-        }
-     
-        stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
-        if self.logLevel == .verbose  {
-            let pre = first ? "[LinkGrubber] tracing: ":","
-            print("\(pre)\(self.ct.items.count)",terminator:"")//,\u{001B}[;m
+            if self.logLevel == .verbose  {
+                let pre =  "[LinkGrubber] rejected: "
+                print("\(pre)\(topurlstr.string) ⛑")
+            }
             fflush(stdout)
-            first = false
+            return nil
         }
         
+        stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
+        
+        if self.logLevel == .verbose  {
+            let pre =  "[LinkGrubber] added: "
+            print("\(pre)\(topurlstr.string)")
+        } else {
+            let pre = first ? "[LinkGrubber] tracing: ":","
+            print("\(pre)\(self.ct.items.count)",terminator:"")
+        }
+        fflush(stdout)
+        first = false
         parserez.links.forEach(){ linkElement in
             switch linkElement.linktype {
             case .hyperlink:
