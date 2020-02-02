@@ -123,6 +123,15 @@ extension InnerCrawler {
     }
     
     
+    fileprivate func emitBadness(_ stats: KrawlingInfo, _ topurlstr: URLFromString, pre:String) -> OnePageGuts? {
+        stats.addStatsBadCrawlRoot(urlstr: topurlstr)
+        if self.logLevel == .verbose  {
+            print(pre)
+        }
+        fflush(stdout)
+        return nil
+    }
+    
     func crawlOne(rootURL:URL, stats:KrawlingInfo ) throws -> OnePageGuts? {
         
         // this is really where the action starts, we crawl from RootStart
@@ -132,24 +141,18 @@ extension InnerCrawler {
         let topurlstr = URLFromString(rootURL.absoluteString)
         // in this case the brandujrl is the topurl
         guard let parserez =  self.grubber.scrapeFromURL(rootURL)  else {
-            print ("load and scrape returned zilch")
-            return nil
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] nolinks:  ⛑\(topurlstr.string)")
         }
         // take all these urls and put them on the end of the crawl list as Leafs
-        guard let _ = parserez.url else {
-            return nil
+        guard  (parserez.url != nil) && parserez.status == .succeeded else {
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] parsefail:  ⛑\(topurlstr.string) ")
         }
         
-        guard parserez.status == .succeeded &&  parserez.links.count > 0 else {
-            stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-            if self.logLevel == .verbose  {
-                let pre =  "[LinkGrubber] rejected: "
-                print("\(pre)\(topurlstr.string) ⛑")
-            }
-            fflush(stdout)
-            return nil
+        guard parserez.links.count > 0 else {
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] nolinks:  ⛑\(topurlstr.string) ")
         }
         
+        // if we've gotten this far it is good
         stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
         
         if self.logLevel == .verbose  {
@@ -160,6 +163,8 @@ extension InnerCrawler {
             print("\(pre)\(self.ct.items.count)",terminator:"")
         }
         fflush(stdout)
+        
+        
         first = false
         parserez.links.forEach(){ linkElement in
             switch linkElement.linktype {
