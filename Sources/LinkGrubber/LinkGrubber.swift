@@ -9,7 +9,7 @@ import Foundation
 
 // main entry point for public Linkgrubber.grub() call
 struct LinkGrubberHello {
-    var text = "Hello, Goodbye!"
+    var text = "LinkGrubber"
 }
 
 final public class LinkGrubber
@@ -36,24 +36,25 @@ final public class LinkGrubber
     
     public  func grub(
         roots:[RootStart],
-        opath:String,
+        opath:String, //
         logLevel:LoggingLevel,
         lgFuncs: LgFuncProts,
         finally:@escaping ReturnsGrubberStats) throws {
         
-        guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
-            else {  fatalError("cant fix outpath") }
+        let dir = URL(fileURLWithPath: opath,isDirectory: true)
+        
+//        guard let fixedPath = URL(string:opath)?.deletingPathExtension().absoluteString
+//            else {  fatalError("cant fix outpath") }
         let transformer =  Transformer(recordExporter:recordExporter,   lgFuncs: lgFuncs, logLevel:logLevel )
         
         let rm = KrawlStream(roots:roots,
                              transformer:transformer,
-                             lgFuncs: lgFuncs ,// transformer
-            
-            csvoutPath: LocalFilePath(fixedPath+".csv"),
-            jsonoutPath: LocalFilePath(fixedPath+".json"),
+                             lgFuncs: lgFuncs ,// transformerm
+            csvoutPath:  dir.appendingPathExtension(".csv"),
+            jsonoutPath:  dir.appendingPathExtension(".json"),
             logLevel: logLevel)// krawlstream
         
-        print("[LinkGrubber] streaming to \(LocalFilePath(fixedPath).path)")
+        print("[LinkGrubber] streaming to \(dir)")
         let q = DispatchQueue( label:"background", qos:.background)
         q.async {
             do {
@@ -79,8 +80,8 @@ fileprivate class KrawlStream : NSObject {
     required   init (roots:[RootStart],
                      transformer:Transformer,
                      lgFuncs:LgFuncProts,
-                     csvoutPath:LocalFilePath,
-                     jsonoutPath:LocalFilePath,
+                     csvoutPath:URL,
+                     jsonoutPath:URL,
                      logLevel:LoggingLevel) {
         
         self.transformer = transformer
