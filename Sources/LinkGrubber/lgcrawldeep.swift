@@ -68,7 +68,7 @@ final class CrawlTable {
                     }
                 }
                 catch {
-                    print("cant crawl \(error)")
+                    fatalError("cant crawl \(error)")
                 }
             }
         }
@@ -121,14 +121,20 @@ extension InnerCrawler {
         //        print("calling whendone from crawldone from crawlingcore with crawlcontext \(crawlerContext)  ")
         finally( crawlerContext)// everything alreadt passed
     }
+    fileprivate func logprint(_ pre:String) {
+        print(pre)
+        fflush(stdout)
+    }
+    fileprivate func logpre(_ pre:String) {
+        if self.logLevel == .verbose  {
+            logprint(pre)
+        }
+    }
     
     
     fileprivate func emitBadness(_ stats: KrawlingInfo, _ topurlstr: URLFromString, pre:String) -> OnePageGuts? {
         stats.addStatsBadCrawlRoot(urlstr: topurlstr)
-        if self.logLevel == .verbose  {
-            print(pre)
-        }
-        fflush(stdout)
+        logpre(pre)
         return nil
     }
     
@@ -141,29 +147,16 @@ extension InnerCrawler {
         let topurlstr = URLFromString(rootURL.absoluteString)
         // in this case the brandujrl is the topurl
         guard let parserez =  self.grubber.scrapeFromURL(rootURL)  else {
-            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] nolinks:  ⛑\(topurlstr.string)")
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] noscrape:⛑  \(topurlstr.string)")
         }
         // take all these urls and put them on the end of the crawl list as Leafs
         guard  (parserez.url != nil) && parserez.status == .succeeded else {
-            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] parsefail:  ⛑\(topurlstr.string) ")
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] parsefail:⛑ \(topurlstr.string) ")
         }
         
         guard parserez.links.count > 0 else {
-            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] nolinks:  ⛑\(topurlstr.string) ")
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] nolinks:⛑  \(topurlstr.string) ")
         }
-        
-        // if we've gotten this far it is good
-        stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
-        
-        if self.logLevel == .verbose  {
-            let pre =  "[LinkGrubber] added: "
-            print("\(pre)\(topurlstr.string)")
-        } else {
-            let pre = first ? "[LinkGrubber] tracing: ":","
-            print("\(pre)\(self.ct.items.count)",terminator:"")
-        }
-        fflush(stdout)
-        
         
         first = false
         parserez.links.forEach(){ linkElement in
@@ -177,33 +170,44 @@ extension InnerCrawler {
                 break
             }
         }//roots for each
-        return try transformer.incorporateParseResults(pr: parserez)
-    }
-    
-    
-    
-    private func outString (_ s:String) {
-        print(s)
-    }
-    
-    func trace(_ cat:String,msg:String?=nil,quotes:Bool=true,last:Bool=false) {
-        guard let mess = msg else { outString(cat); return }
-        let comma = last ? "" : ","
-        switch quotes {
-        case true:
-            let t = """
-            "\(cat)":"\(mess)"\(comma)
-            """
-            outString (t)
-        case false:
-            let t = """
-            "\(cat)":\(mess)\(comma)
-            """
-            outString (t)
+        
+        
+        let guts = try transformer.incorporateParseResults(pr: parserez)
+        guard let opg = guts else  {
+            return emitBadness(stats, topurlstr,pre: "[LinkGrubber] noinc:⛑  \(topurlstr.string) ")
         }
+        
+        // if we've gotten this far it is good
+        stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
+        if LoggingLevel.verbose == logLevel {
+            logprint( "[LinkGrubber] added: \(topurlstr.string) links:\(opg.links.count) tags:\(opg.props.tags.count)")
+        } else {
+            let pre = first ? "[LinkGrubber] tracing: ":","
+            logprint(pre)
+        }
+        return opg
     }
-    
-    func delay(_ delay:Double, completion:@escaping ()->()){ // thanks Matt
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + delay, execute: completion)
+}
+
+
+
+private func outString (_ s:String) {
+    print(s)
+}
+
+func trace(_ cat:String,msg:String?=nil,quotes:Bool=true,last:Bool=false) {
+    guard let mess = msg else { outString(cat); return }
+    let comma = last ? "" : ","
+    switch quotes {
+    case true:
+        let t = """
+        "\(cat)":"\(mess)"\(comma)
+        """
+        outString (t)
+    case false:
+        let t = """
+        "\(cat)":\(mess)\(comma)
+        """
+        outString (t)
     }
 }

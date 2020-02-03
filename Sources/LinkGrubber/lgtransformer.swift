@@ -5,7 +5,7 @@
 import Foundation
 
 
-extension Array where Element == String  {
+public extension Array where Element == String  {
     func includes(_ f:Element)->Bool {
         self.firstIndex(of: f) != nil
     }
@@ -69,10 +69,7 @@ open class Transformer:NSObject {
                                         urlstr: aurl,
                                         title: crawlblock.name ?? "???",
                                         tags:  pr.tags)
-            if logLevel == .verbose  {
-                let pre =  "[LinkGrubber] yield:\(mdlinks.count) tags:\(pr.tags.count)"
-                print("\(pre)")
-            }
+        
             return OnePageGuts(props: props,links: mdlinks)
         }//let url
         return nil
