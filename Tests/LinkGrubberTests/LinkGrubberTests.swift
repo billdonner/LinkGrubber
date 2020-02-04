@@ -40,6 +40,11 @@ func kannaScrapeAndAbsorb (lgFuncs:LgFuncs,theURL:URL, html:String ) throws -> S
                    relativeTo:theURL,
                    tag: "media")
     }
+    
+    
+    let title = html.extractTitle()[0]
+    let links = html.extractAnchors()
+    
     return ScrapeAndAbsorbBlock(title:  title, links: encounterdLinks)
 }
 //fileprivate extension Array where Element == String  {
@@ -80,6 +85,18 @@ struct LgFuncs: LgFuncProts {
 //////////////////////// Test Cases //////////////////////////
 
 class LinkGrubberTests: XCTestCase {
+    
+    func extractTest(html:String) {
+        let title = html.extractTitle()[0]
+        let result = html.extractAnchors()
+        print(title)
+        result.forEach({print($0)})
+    }
+    func extractTest(url:URL) {
+    let html = try! String(contentsOf: url, encoding: .utf8)
+    extractTest(html: html)
+    }
+
     
     var opath:String!
     var grubstats : LinkGrubberStats? = nil
