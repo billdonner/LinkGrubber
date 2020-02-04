@@ -1,21 +1,24 @@
 import XCTest
 @testable import LinkGrubber
+import HTMLExtractor
 //import Kanna
 
-let LOGGINGLEVEL = LoggingLevel.none
+let LOGGINGLEVEL = LoggingLevel.verbose
+
+
 // these functions must be supplied by the caller of LinkGrubber.grub()
  
 
 struct LgFuncs: LgFuncProts {
     
     func scrapeAndAbsorbFunc ( theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
-        try HTMLExtractor.generalScrapeAndAbsorb ( lgFuncs: self,theURL:theURL, html:html )
+        try HTMLExtractor.generalScrapeAndAbsorb ( theURL:theURL, html:html )
     }
     func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> () {
         // print ("MAKING PAGE with props \(props) linkscount: \(links)")
     }
     func matchingFunc(_ u: URL) -> Bool {
-        return  true//u.absoluteString.hasPrefix("https://billdonner.github.io/LinkGrubber/")
+        return  u.absoluteString.hasPrefix("https://billdonner.")
     }
     func isImageExtensionFunc (_ s:String) -> Bool {
         ["jpg","jpeg","png"].includes(s)
@@ -81,7 +84,7 @@ class LinkGrubberTests: XCTestCase {
     func testGrubberHdFull() {
         runGrubber (RootStart(name:"testGrubberHdFull",
                               url:URL(string:"https://billdonner.com/halfdead/")!),
-                    expecting: expectedResults(94,0,0)) // will deliberately fail
+                    expecting: expectedResults(97,96,1)) // will deliberately fail
     }
     
     func testGrubberHd2019() {
@@ -92,12 +95,12 @@ class LinkGrubberTests: XCTestCase {
     func testGrubber0() {
         runGrubber (RootStart(name:"zero-site",
                               url:URL(string:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/zero-site/")!),
-                    expecting:  expectedResults(2,1,1))
+                    expecting:  expectedResults(6,3,3))
     }
     func testGrubber1() {
         runGrubber(RootStart(name:"one-site",
                              url:URL(string:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/")!),
-                   expecting: expectedResults(2,1,1))
+                   expecting: expectedResults(8,4,4))
     }
     func testGrubber2() {
         runGrubber(RootStart(name:"two-site",
@@ -111,6 +114,6 @@ class LinkGrubberTests: XCTestCase {
         ("testGrubber1", testGrubber1),
         ("testGrubber2", testGrubber2),
                      ("testGrubberHd2019", testGrubberHd2019),
-                     ("testGrubberHdFull", testGrubberHdFull)
+                    ("testGrubberHdFull", testGrubberHdFull)
     ]
 }
