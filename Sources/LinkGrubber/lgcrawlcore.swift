@@ -350,7 +350,7 @@ public  func processExtension(lgFuncs:LgFuncProts, url:URL,relativeTo:URL?)->Lin
             return nil
         }
         if lgFuncs.isNoteworthyExtensionFunc(pext){
-            ///////print("Processing \(pext) file from \(url)")
+        
         }
     } else
     {

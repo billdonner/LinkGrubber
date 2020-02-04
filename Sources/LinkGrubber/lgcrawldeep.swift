@@ -122,7 +122,7 @@ extension InnerCrawler {
         finally( crawlerContext)// everything alreadt passed
     }
     fileprivate func logprint(_ pre:String) {
-        print(pre)
+        print(pre,terminator:"")
         fflush(stdout)
     }
     fileprivate func logpre(_ pre:String) {
@@ -183,7 +183,7 @@ extension InnerCrawler {
             logprint( "[LinkGrubber] added: \(topurlstr.string) links:\(opg.links.count) tags:\(opg.props.tags.count)")
         } else {
             let pre = first ? "[LinkGrubber] tracing: ":","
-            logprint(pre)
+            logprint("\(pre)\(opg.links.count)")
         }
         return opg
     }

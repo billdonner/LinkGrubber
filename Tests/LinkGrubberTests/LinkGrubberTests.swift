@@ -1,65 +1,18 @@
 import XCTest
 @testable import LinkGrubber
-import Kanna
+//import Kanna
 
-let LOGGINGLEVEL = LoggingLevel.verbose
+let LOGGINGLEVEL = LoggingLevel.none
 // these functions must be supplied by the caller of LinkGrubber.grub()
-
-// for testing only , we'll use kanna
-
-func kannaScrapeAndAbsorb (lgFuncs:LgFuncs,theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
-    
-      var encounterdLinks:[LinkElement]=[]
-    
-    func absorbLink(href:String? , txt:String? ,relativeTo: URL?, tag: String )  {
-        if let lk = href, //link["href"] ,
-            let url = URL(string:lk,relativeTo:relativeTo) ,
-            let linktype = processExtension(lgFuncs: lgFuncs, url:url, relativeTo: relativeTo) {
-            
-            // strip exension if any off the title
-            let parts = (txt ?? "fail").components(separatedBy: ".")
-            if let ext  = parts.last,  let front = parts.first , ext.count > 0
-            {
-                let subparts = front.components(separatedBy: "-")
-                if let titl = subparts.last {
-                    let titw =  titl.trimmingCharacters(in: .whitespacesAndNewlines)
-                  encounterdLinks.append(LinkElement(title:titw,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
-                }
-            } else {
-                // this is what happens upstream
-                if  let txt  = txt  {  encounterdLinks.append(LinkElement(title:txt,href:url.absoluteString,linktype:linktype, relativeTo: relativeTo))
-                }
-            }
-        }
-    }// end of absorbLink
-    let doc = try  Kanna.HTML(html: html, encoding: .utf8)
-    let title = doc.title ?? "<untitled>"
-    for link in doc.xpath("//a") {
-        absorbLink(href:link["href"],
-                   txt:link.text,
-                   relativeTo:theURL,
-                   tag: "media")
-    }
-    
-    
-    let title = html.extractTitle()[0]
-    let links = html.extractAnchors()
-    
-    return ScrapeAndAbsorbBlock(title:  title, links: encounterdLinks)
-}
-//fileprivate extension Array where Element == String  {
-//func includes(_ f:Element)->Bool {
-//    self.firstIndex(of: f) != nil
-//    }
-//}
+ 
 
 struct LgFuncs: LgFuncProts {
     
     func scrapeAndAbsorbFunc ( theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
-        try kannaScrapeAndAbsorb ( lgFuncs: self,theURL:theURL, html:html )
+        try HTMLExtractor.generalScrapeAndAbsorb ( lgFuncs: self,theURL:theURL, html:html )
     }
     func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> () {
-       // print ("MAKING PAGE with props \(props) linkscount: \(links)")
+        // print ("MAKING PAGE with props \(props) linkscount: \(links)")
     }
     func matchingFunc(_ u: URL) -> Bool {
         return  true//u.absoluteString.hasPrefix("https://billdonner.github.io/LinkGrubber/")
@@ -84,19 +37,76 @@ struct LgFuncs: LgFuncProts {
 
 //////////////////////// Test Cases //////////////////////////
 
-class LinkGrubberTests: XCTestCase {
-    
-    func extractTest(html:String) {
-        let title = html.extractTitle()[0]
-        let result = html.extractAnchors()
-        print(title)
-        result.forEach({print($0)})
+class ScrapeTests: XCTestCase {
+    func extractTest(url:URL,expectedTitle:String,expectedLinkCount:Int)->Bool {
+        func iextractTest(html:String,expectedTitle:String,expectedLinkCount:Int) -> Bool {
+            let extracted = HTMLExtractor.extractFrom(html: html)
+            let titlematch = extracted.title == expectedTitle
+            if !titlematch {// print("failed titles - \(extracted.title)")
+                
+            }
+            let countmatch = extracted.links.count == expectedLinkCount
+            if !countmatch  { //print("failed count - \(extracted.links.count)")
+                
+            }
+            let passtest = countmatch && titlematch
+           // passtest ? print("*passed") : print("*failed")
+            return passtest
+        }
+        do {
+            let html = try String(contentsOf: url, encoding: .utf8)
+            return iextractTest(html: html,expectedTitle:expectedTitle,expectedLinkCount:expectedLinkCount)
+        }
+        catch {
+            print("Could not get contents Of \(url)")
+            return false
+        }
     }
-    func extractTest(url:URL) {
-    let html = try! String(contentsOf: url, encoding: .utf8)
-    extractTest(html: html)
+    
+    
+    func testextractsA() {
+        
+        let a =    extractTest(url: URL(string: "https://billdonner.github.io/LinkGrubber/linkgrubberexamples/zero-site/")!,
+                               expectedTitle: "Completely Empty Page With One Bad Link",expectedLinkCount: 2)
+        XCTAssert(a)
+        
+    }
+    func testextractsB() {
+        
+        let b =
+            extractTest(url: URL(string: "https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/")!,
+                        expectedTitle: "Assorted Links to Parse",expectedLinkCount: 5)
+        XCTAssert(b)
+    }
+    func testextractsC() {
+        let c =  extractTest(url: URL(string: "https://billdonner.github.io/LinkGrubber/linkgrubberexamples/two-site/")!,
+                             expectedTitle: "Two Link Page",expectedLinkCount: 0)
+        XCTAssert(c)
+    }
+    func testextractsD() {
+        //this page does not exist and tus is assumed to fail
+        let c =  extractTest(url: URL(string: "https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/zero-site")!,
+                             expectedTitle: "Two Link Page",expectedLinkCount: 0)
+        XCTAssert(!c)
+    }
+    func testextractsE() {
+        //this page does not exist and tus is assumed to fail
+        let c =  extractTest(url: URL(string: "https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/one-site")!,
+                             expectedTitle: "Two Link Page",expectedLinkCount: 0)
+        XCTAssert(!c)
     }
 
+    
+    static var allTests = [
+        ("testextractsA", testextractsA),
+        ("testextractsB", testextractsB),
+        ("testextractsC", testextractsC),
+        ("testextractsD", testextractsD),
+        ("testextractsE", testextractsE)
+    ]
+}
+
+class LinkGrubberTests: XCTestCase {
     
     var opath:String!
     var grubstats : LinkGrubberStats? = nil
@@ -140,9 +150,9 @@ class LinkGrubberTests: XCTestCase {
     func testGrubberHdFull() {
         runGrubber (RootStart(name:"testGrubberHdFull",
                               url:URL(string:"https://billdonner.com/halfdead/")!),
-                    expecting: expectedResults(93,0,0)) // will deliberately fail
+                    expecting: expectedResults(94,0,0)) // will deliberately fail
     }
-
+    
     func testGrubberHd2019() {
         runGrubber (RootStart(name:"testGrubberHd2019",
                               url:URL(string:"https://billdonner.com/halfdead/2019/")!),
@@ -156,19 +166,20 @@ class LinkGrubberTests: XCTestCase {
     func testGrubber1() {
         runGrubber(RootStart(name:"one-site",
                              url:URL(string:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/one-site/")!),
-                   expecting: expectedResults(3,1,2))
+                   expecting: expectedResults(2,1,1))
     }
     func testGrubber2() {
         runGrubber(RootStart(name:"two-site",
                              url:URL(string:"https://billdonner.github.io/LinkGrubber/linkgrubberexamples/two-site/")!),
-                   expecting: expectedResults(3,1,2))
+                   expecting: expectedResults(1,0,1))
     }
+    
+    
     static var allTests = [
-       
         ("testGrubber0", testGrubber0),
-               ("testGrubber1", testGrubber1),
-               ("testGrubber2", testGrubber2),
-               ("testGrubberHd2019", testGrubberHd2019),
-               ("testGrubberHdFull", testGrubberHdFull)
+        ("testGrubber1", testGrubber1),
+        ("testGrubber2", testGrubber2),
+                     ("testGrubberHd2019", testGrubberHd2019),
+                     ("testGrubberHdFull", testGrubberHdFull)
     ]
 }
