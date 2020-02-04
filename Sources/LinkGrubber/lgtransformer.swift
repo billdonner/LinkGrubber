@@ -39,7 +39,8 @@ open class Transformer:NSObject {
         guard let url = pr.url else { fatalError() }
         
         for link in pr.links {
-            let href =  link.href!.absoluteString
+            if let linkref = link.href { // sometimes no href
+            let href =  linkref.absoluteString //yikes
             if !href.hasSuffix("/" ) {
                 crawlblock.albumurl = url.absoluteString
                 crawlblock.name = link.title
@@ -47,6 +48,7 @@ open class Transformer:NSObject {
                 crawlblock.cover_art_url = ""
                 mdlinks.append(Fav(name:crawlblock.name ?? "??", url:crawlblock.songurl,comment:""))
                 recordExporter.addRowToExportStream(cont: crawlblock)
+            }
             }
         }
         
