@@ -13,6 +13,7 @@ import Foundation
 import func Darwin.fputs
 import var Darwin.stderr
 
+import HTMLExtractor
 
 //MARK:-  PUBLIC
 
@@ -20,14 +21,8 @@ public enum LoggingLevel {
     case none
     case verbose
 }
-public struct ScrapeAndAbsorbBlock {
-    let title: String
-    let links:[LinkElement]
-    public init(title:String,links:[LinkElement]){
-        self.title = title
-        self.links = links
-    }
-}
+
+
 public struct CustomPageProps {
     public var isInternalPage: Bool
     public var urlstr: String
@@ -84,24 +79,7 @@ open class LinkGrubberStats:Equatable {
     
 }
 
-public struct LinkElement  {
-    let title: String
-    let href: URL?
-    let linktype: Linktype
-    
-    var urlstr: String {
-        if let url = href {
-            return url.absoluteString
-        }
-        else {
-            return "bad url"
-        }
-    }
-    // when a LinkElement is creted, it tries to make a url from the supplied string
-    public init(title:String,href:String,linktype:Linktype,relativeTo:URL?) {
-        self.title = title; self.href=URL(string:href,relativeTo:relativeTo); self.linktype=linktype
-    }
-}
+
 public struct  RootStart  {
     public let name: String
     public let urlstr: String
@@ -329,10 +307,6 @@ typealias PageScraperFunc = (URL,String)->ParseResults?
 
 typealias TraceFuncSig =  (String,String?,Bool,Bool) -> ()
 
-public enum Linktype {
-    case leaf
-    case hyperlink
-}
 
 
 public  func processExtension(lgFuncs:LgFuncProts, url:URL,relativeTo:URL?)->Linktype?{
