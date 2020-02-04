@@ -14,6 +14,34 @@ import func Darwin.fputs
 import var Darwin.stderr
 
 import HTMLExtractor
+enum ParseStatus:Equatable  {
+    case failed(code:Int)
+    case succeeded
+}
+
+private enum ScrapeTechnique {
+    case forcedFail
+    case normal //was kannlinks...
+}
+
+
+typealias PageScraperFunc = (URL,String)->ParseResults?
+
+typealias TraceFuncSig =  (String,String?,Bool,Bool) -> ()
+
+typealias ReturnsCrawlStats = (KrawlingInfo)->()
+
+typealias ReturnsParseResults =  (ParseResults)->()
+
+typealias ReturnsLinkElement = (LinkElement)->()
+
+// global, actually
+enum CrawlState {
+    case crawling
+    case done
+    case failed
+}
+
 
 //MARK:-  PUBLIC
 
@@ -100,12 +128,12 @@ public class Fav {
     }
 }
 public protocol LgFuncProts {
-    func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> ()
+    func pageMakerFunc(_ props:CustomPageProps,
+                       _ links: [Fav] ) throws -> ()
     func matchingFunc(_ u:URL) -> Bool
-    func isInterestingExtensionFunc (_ s:String) -> Bool
-    func isNoteworthyExtensionFunc (_ s:String) -> Bool
-    func isImageExtensionFunc (_ s:String) -> Bool
     func scrapeAndAbsorbFunc (theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock
+    //this can be moved down to filetypeprots in bandsiste after build a func for incorporate parseblock
+    func isImageExtensionFunc (_ s:String) -> Bool
 }
 
 public typealias IsFileExtensionFunc =  (String)->Bool
@@ -213,11 +241,6 @@ struct ParseResults {
     }
 }
 
-typealias ReturnsCrawlStats = (KrawlingInfo)->()
-typealias ReturnsParseResults =  (ParseResults)->()
-typealias ReturnsLinkElement = (LinkElement)->()
-
-
 
 
 // nothing public here
@@ -225,12 +248,7 @@ typealias ReturnsLinkElement = (LinkElement)->()
 // these really must be public, whereas the stuff below is only used within
 
 
-// global, actually
-enum CrawlState {
-    case crawling
-    case done
-    case failed
-}
+
 
 // freestanding
 
@@ -289,47 +307,5 @@ final class LimitedWorker {
             })
         })
     }
-}
-
-
-enum ParseStatus:Equatable  {
-    case failed(code:Int)
-    case succeeded
-}
-
-private enum ScrapeTechnique {
-    case forcedFail
-    case normal //was kannlinks...
-}
-
-
-typealias PageScraperFunc = (URL,String)->ParseResults?
-
-typealias TraceFuncSig =  (String,String?,Bool,Bool) -> ()
-
-
-
-public  func processExtension(lgFuncs:LgFuncProts, url:URL,relativeTo:URL?)->Linktype?{
-    guard url.absoluteString.hasPrefix(relativeTo!.absoluteString) else {
-        return nil
-    }
-    
-    let pext = url.pathExtension.lowercased()
-    let hasextension = pext.count > 0
-    let linktype:Linktype = hasextension == false ? .hyperlink:.leaf
-    
-    
-    if hasextension {
-        guard lgFuncs.isInterestingExtensionFunc(pext) else {
-            return nil
-        }
-        if lgFuncs.isNoteworthyExtensionFunc(pext){
-        
-        }
-    } else
-    {
-        //  print("no ext: ", url)
-    }
-    return linktype
 }
 
