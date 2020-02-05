@@ -25,53 +25,48 @@ Typically, as pages of links are grubber you'll want to write a file. It's up to
 
 My Static Websites, built on Publish from John Sundell, generates MarkDown Files
 
+#### first declare some functions needed by the grubber
 
 ```swift 
-struct LgFuncs: LgFuncProts {
+private struct LgFuncs: LgFuncProts {
     
     func scrapeAndAbsorbFunc ( theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
-        try kannaScrapeAndAbsorb ( lgFuncs: self,theURL:theURL, html:html )
+        try HTMLExtractor.generalScrapeAndAbsorb ( theURL:theURL, html:html )
     }
     func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> () {
-       // print ("MAKING PAGE with props \(props) linkscount: \(links)")
+        // print ("MAKING PAGE with props \(props) linkscount: \(links)")
     }
     func matchingFunc(_ u: URL) -> Bool {
-        return  true//u.absoluteString.hasPrefix("https://billdonner.github.io/LinkGrubber/")
+        return  u.absoluteString.hasPrefix("https://billdonner.")
     }
     func isImageExtensionFunc (_ s:String) -> Bool {
         ["jpg","jpeg","png"].includes(s)
     }
-    private   func isAudioExtensionFunc(_ s:String) -> Bool {
-        ["mp3","mpeg","wav"].includes(s)
-    }
-    private    func isMarkdownExtensionFunc(_ s:String) -> Bool{
-        ["md", "markdown", "txt", "text"].includes(s)
-    }
-    
-    func isNoteworthyExtensionFunc(_ s: String) -> Bool {
-        isImageExtensionFunc(s) || isMarkdownExtensionFunc(s)
-    }
-    func isInterestingExtensionFunc (_ s:String) -> Bool {
-        isImageExtensionFunc(s) || isAudioExtensionFunc(s)
-    }
+
 }
+```
+#### then make a LinkGrubber and Grub
 
-
-  
+  ```swift 
         do {
-            let _ = try LinkGrubber()
-                .grub(roots:[rootstart],
-                      opath:opath,
-                      logLevel: LoggingLevel.verbose,
-                      lgFuncs: lgFuncs)
-                { crawlerstats in
-                    self.grubstats = crawlerstats
-            }
-        }
-        catch {
-            print("couldnt grub \(error)")
-        }
+                  let _ = try LinkGrubber()
+                      .grub(roots:[rootstart],
+                            opath:"/x/y/z",
+                            logLevel: .verbose,
+                            lgFuncs: lgFuncs)
+                      { crawlerstats in
+                          self.grubstats = crawlerstats
+                  }
+              }
+              catch {
+                  print("couldnt grub \(error)")
+              }
     
 ```
+#### now use  .csv file in Numbers or Excel
+
+There's a csv file for you at the end of the day
+
+### use .json file for further development endevors
 
 
