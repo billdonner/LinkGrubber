@@ -7,9 +7,12 @@ let LOGGINGLEVEL = LoggingLevel.verbose
 
 
 // these functions must be supplied by the caller of LinkGrubber.grub()
- 
+ //////////////////////// Test Cases //////////////////////////
 
-struct LgFuncs: LgFuncProts {
+final class LinkGrubberTests: XCTestCase {
+     
+
+private struct LgFuncs: LgFuncProts {
     
     func scrapeAndAbsorbFunc ( theURL:URL, html:String ) throws -> ScrapeAndAbsorbBlock {
         try HTMLExtractor.generalScrapeAndAbsorb ( theURL:theURL, html:html )
@@ -23,28 +26,13 @@ struct LgFuncs: LgFuncProts {
     func isImageExtensionFunc (_ s:String) -> Bool {
         ["jpg","jpeg","png"].includes(s)
     }
-    private   func isAudioExtensionFunc(_ s:String) -> Bool {
-        ["mp3","mpeg","wav"].includes(s)
-    }
-    private    func isMarkdownExtensionFunc(_ s:String) -> Bool{
-        ["md", "markdown", "txt", "text"].includes(s)
-    }
-    
-    func isNoteworthyExtensionFunc(_ s: String) -> Bool {
-        isImageExtensionFunc(s) || isMarkdownExtensionFunc(s)
-    }
-    func isInterestingExtensionFunc (_ s:String) -> Bool {
-        isImageExtensionFunc(s) || isAudioExtensionFunc(s)
-    }
+
 }
 
-//////////////////////// Test Cases //////////////////////////
 
-class LinkGrubberTests: XCTestCase {
-    
     var opath:String!
     var grubstats : LinkGrubberStats? = nil
-    let lgFuncs = LgFuncs()
+    private let lgFuncs = LgFuncs()
     var anticipatedstats : LinkGrubberStats? = nil
     
     override func setUp() {
