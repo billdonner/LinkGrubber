@@ -33,6 +33,8 @@ final public class LinkGrubber
     }
     
     private var recordExporter =  RecordExporter()
+    private var krawlStream: KrawlStream? = nil  // keep this alive throughout a call to grub
+    
     
     public  func grub(
         roots:[RootStart],
@@ -47,18 +49,19 @@ final public class LinkGrubber
 //            else {  fatalError("cant fix outpath") }
         let transformer =  Transformer(recordExporter:recordExporter,   lgFuncs: lgFuncs, logLevel:logLevel )
         
-        let rm = KrawlStream(roots:roots,
+        krawlStream = KrawlStream(roots:roots,
                              transformer:transformer,
                              lgFuncs: lgFuncs ,// transformerm
             csvoutPath:  dir.appendingPathExtension(".csv"),
             jsonoutPath:  dir.appendingPathExtension(".json"),
             logLevel: logLevel)// krawlstream
+        guard let kstream = krawlStream else { fatalError("cant make krawlstream")}
         
         print("[LinkGrubber] streaming to \(dir)")
         let q = DispatchQueue( label:"background", qos:.background)
         q.async {
             do {
-                try rm.startCrawling( roots:roots,
+                try kstream.startCrawling( roots:roots,
                                       loggingLevel: logLevel,
                                       finally:finally )
             }
@@ -76,6 +79,7 @@ fileprivate class KrawlStream : NSObject {
     var transformer:Transformer
     var crawlStats:KrawlingInfo
     var lgFuncs:LgFuncProts
+    var oc:OuterCrawler!
     
     required   init (roots:[RootStart],
                      transformer:Transformer,
@@ -93,10 +97,10 @@ fileprivate class KrawlStream : NSObject {
         //
         do {
             // Some of the APIs that we use below are available in macOS 10.13 and above.
-            guard #available(macOS 10.13, *) else {
-                consoleIO.writeMessage("need at least 10.13",to:.error)
-                exit(0)
-            }
+//            guard #available(macOS 10.13, *) else {
+//                consoleIO.writeMessage("need at least 10.13",to:.error)
+//                exit(0)
+//            }
             let url = URL(fileURLWithPath:  csvoutPath.path)//.path,relativeTo: ExportDirectoryURL)
             try  "".write(to: url, atomically: true, encoding: .utf8)
             let fileHandle = try FileHandle(forWritingTo: url)
@@ -119,8 +123,10 @@ fileprivate class KrawlStream : NSObject {
                         loggingLevel:LoggingLevel,
                         finally:@escaping ReturnsGrubberStats) throws {
         
-        let _ = try OuterCrawler (roots: roots,transformer:transformer,
-                                  loggingLevel: loggingLevel, lgFuncs: lgFuncs )
+         oc =   OuterCrawler (transformer:transformer,
+                                   lgFuncs: lgFuncs )
+        
+        try oc.startMeUp(roots,loggingLevel: loggingLevel)
         { crawlResult in
             // here we are done, reflect it back upstream
             print(crawlResult.describe())

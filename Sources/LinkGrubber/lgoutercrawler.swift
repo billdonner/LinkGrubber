@@ -9,30 +9,28 @@ import Foundation
 
 // nothing public here
 
-final class OuterCrawler {
-    private var returnsCrawlResults : ReturnsGrubberStats
-    private var icrawler : InnerCrawler
+final class OuterCrawler { 
+    private var icrawler : InnerCrawler!
     private var krawlInfo : KrawlingInfo
     private var transformer:Transformer
     private var lgFuncs:LgFuncProts
     
-    init(roots:[RootStart],transformer:Transformer,
-         loggingLevel:LoggingLevel,
-         lgFuncs:LgFuncProts ,
-         returnsResults:@escaping ReturnsGrubberStats)
-        throws {
+    init(transformer:Transformer,
+         lgFuncs:LgFuncProts)  {
             self.transformer = transformer
             self.lgFuncs = lgFuncs
             self.krawlInfo = KrawlingInfo()
-            self.returnsCrawlResults = returnsResults
-            let lk = ScrapingMachine(scraper: transformer.scraper,matcher:lgFuncs.matchingFunc )
-            // we start the inner crawler right here
-            self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, lgFuncs: lgFuncs ,logLevel:loggingLevel)
-            startMeUp(roots, icrawler: icrawler )
+            // we dont start the inner crawler right here
+         
     }
     
-    private func startMeUp(_ roots:[RootStart],icrawler:InnerCrawler) {
+    func startMeUp(_ roots:[RootStart], loggingLevel:LoggingLevel ,
+            returnsResults:@escaping ReturnsGrubberStats) throws {
         let startTime = Date()
+
+        let lk = ScrapingMachine(scraper: transformer.scraper,matcher:lgFuncs.matchingFunc )
+        self.icrawler =  try InnerCrawler(roots:roots,  grubber:lk, transformer: transformer, lgFuncs: lgFuncs ,logLevel:loggingLevel)
+                
         icrawler.bigCrawlLoop( crawlStats: krawlInfo) {
             _ in
             // finally finished !
@@ -49,7 +47,7 @@ final class OuterCrawler {
                                              status:200)
             /// this is where we will finally wind up, need to call the user routine that was i
             
-            self.returnsCrawlResults(grubstats)
+             returnsResults(grubstats)
             
         }
     }

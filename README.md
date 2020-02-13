@@ -1,5 +1,5 @@
 # LinkGrubber
-0.1.34
+0.1.35 changed several lets to vars and moved to outer level to increase lifetimes
 
 
 <p align="center">
