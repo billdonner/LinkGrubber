@@ -9,6 +9,8 @@ import Foundation
 
 // nothing public here
 
+var allsmallmo:[SmallMo] = []
+
 final class CrawlTable {
     
     private  var crawlCountPeak: Int = 0
@@ -45,7 +47,15 @@ final class CrawlTable {
         return topurl
     }
     
-    
+    func convertOpgToSmallMo(opg:OnePageGuts) -> SmallMo {
+        var anchors:[AnchorInfo] = []
+        for (idx,link) in opg.links.enumerated() {
+            anchors.append(AnchorInfo(t:link.name,l:link.url,o:idx+1))
+        }
+        // note we are using urlstr, not title, which just has the title of last song
+        let m = SmallMo(title:opg.props.urlstr,refs: anchors)
+        return m
+    }
     fileprivate func crawlLoop (finally:  ReturnsCrawlStats,  stats: KrawlingInfo, innerCrawler:InnerCrawler,   lgFuncs:LgFuncProts) {
         while crawlState == .crawling {
             if items.count == 0 {
@@ -65,6 +75,8 @@ final class CrawlTable {
                     // now publish the guts
                     if let opg = opg {
                         try lgFuncs.pageMakerFunc(opg.props,opg.links)
+                        let smallmo = convertOpgToSmallMo(opg: opg)
+                        allsmallmo.append(smallmo)
                     }
                 }
                 catch {
@@ -176,7 +188,9 @@ extension InnerCrawler {
         guard let opg = guts else  {
             return emitBadness(stats, topurlstr,pre: "[LinkGrubber] noinc:⛑  \(topurlstr.string) ")
         }
+        // now lets turn opg into a smallmo and append to performances
         
+    
         // if we've gotten this far it is good
         stats.addStatsGoodCrawlRoot(urlstr: topurlstr)
         if LoggingLevel.verbose == logLevel {

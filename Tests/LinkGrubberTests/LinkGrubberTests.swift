@@ -3,7 +3,7 @@ import XCTest
 import HTMLExtractor
 //import Kanna
 
-let LOGGINGLEVEL = LoggingLevel.verbose
+let LOGGINGLEVEL = LoggingLevel.none
 
 
 // these functions must be supplied by the caller of LinkGrubber.grub()
@@ -18,7 +18,7 @@ private struct LgFuncs: LgFuncProts {
         try HTMLExtractor.generalScrapeAndAbsorb ( theURL:theURL, html:html )
     }
     func pageMakerFunc(_ props:CustomPageProps,  _ links: [Fav] ) throws -> () {
-        // print ("MAKING PAGE with props \(props) linkscount: \(links)")
+       // print ("\nMAKING PAGE with props \(props) linkscount: \(links.count)")
     }
     func matchingFunc(_ u: URL) -> Bool {
         return  u.absoluteString.hasPrefix("https://billdonner.")

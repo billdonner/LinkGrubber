@@ -18,7 +18,7 @@ open class RecordExporter {
     private var first = true
     
     func makecsvheader( ) -> String {
-        return  "Name,Artist,Album,SongURL,AlbumURL,CoverArtURL"
+        return  "Name,Artist,Album,SongURL,AlbumURL,Track"
     }
     func mskecsvtrailer( ) -> String?  {
         return    nil
@@ -28,7 +28,7 @@ open class RecordExporter {
         func cleanItUp(_ r:CrawlBlock, f:(String)->(String)) -> String {
             let z =
             """
-            \(f(r.name ?? "")),\(f(r.artist ?? "")),\(f(r.album ?? "")),\(f(r.songurl)),\(f(r.albumurl ?? "")),\(f(r.cover_art_url ?? ""))
+            \(f(r.name ?? "")),\(f(r.artist ?? "")),\(f(r.album ?? "")),\(f(r.songurl)),\(f(r.albumurl ?? "")),\(f(r.track ?? ""))
             """
             return z
         }
@@ -43,19 +43,29 @@ open class RecordExporter {
     
     func addHeaderToExportStream( ) {
         print(makecsvheader(), to: &csvOutputStream )// dont add extra
-        print("""
-      [
-    """ ,
-              to: &jsonOutputStream )// dont add extra
+//        print("""
+//      [
+//    """ ,
+//              to: &jsonOutputStream )// dont add extra
     }
     func addTrailerToExportStream( ) {
         
         if let trailer =  mskecsvtrailer() {
             print(trailer , to: &csvOutputStream )
         }
-        emitToJSONStream("""
-]
-""")
+//        emitToJSONStream("""
+//]
+//""")
+        
+        
+        
+        // let's also write a bigmo
+        let bigmo = BigMo(base_url: URL(string:"https://billdonner.com/halfdead/")!,
+                          filters:["mp3"],
+                          meetups: allsmallmo)
+        
+        emitToJSONStream(bigmo.describe())
+        
     }
     func addRowToExportStream(cont:CrawlBlock) {
         
@@ -63,29 +73,29 @@ open class RecordExporter {
         print(stuff , to: &csvOutputStream )
         
         
-        let parts = stuff.components(separatedBy: ",")
-        if first {
-            emitToJSONStream("""
-{
-""")
-        } else {
-            emitToJSONStream("""
-,{
-""")
-        }
-        for (idx,part) in parts.enumerated() {
-            emitToJSONStream("""
-                "\(idx)":"\(part)"
-                """)
-            if idx == parts.count - 1 {
-                emitToJSONStream("""
-}
-""")
-            } else {
-                emitToJSONStream(",")
-            }
-            
-        }
+ //       let parts = stuff.components(separatedBy: ",")
+//        if first {
+//            emitToJSONStream("""
+//{
+//""")
+//        } else {
+//            emitToJSONStream("""
+//,{
+//""")
+//        }
+//        for (idx,part) in parts.enumerated() {
+//            emitToJSONStream("""
+//                "\(idx)":"\(part)"
+//                """)
+//            if idx == parts.count - 1 {
+//                emitToJSONStream("""
+//}
+//""")
+//            } else {
+//                emitToJSONStream(",")
+//            }
+//
+//        }
         first =  false
     }
 }

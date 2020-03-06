@@ -5,6 +5,84 @@
 import Foundation
 
 
+//MARK:- a Xenerator is just the title and parsed links from a web page
+
+struct AnchorInfo:Codable {
+    let t:String
+    let l: String // not url, it might just be the path if he base_url is a prefix
+    let o:Int
+}
+struct BigMo: Codable {
+    let schema_version = "0.1.0"
+    let date_generated = "\(Date())"
+    let base_url:URL
+    let filters:[String]
+    let meetups:[SmallMo]
+    
+    func generate( ) throws -> String {
+        var perfs:[SmallMo] = []
+        for perf in meetups {
+            if perf.refs.count > 0 {
+            let filteredlinks:[AnchorInfo]  = perf.makeLinks(base_url,filters)
+            if filteredlinks.count > 0 { // if no links, dont generate
+                perfs.append( SmallMo(title: perf.title, refs: filteredlinks))
+            }
+            }
+        }
+        
+          let encoder = JSONEncoder()
+          if #available(OSX 10.15, *) {
+              encoder.outputFormatting = [.withoutEscapingSlashes]//,.prettyPrinted]
+          }
+          let t = try encoder.encode(self)
+          return   String(data:t, encoding:.utf8)!
+      }
+      
+    func describe() -> String {
+        return try! generate( )
+    }
+    func dump() throws {
+        print("/********** BIGMO DUMP ************/")
+        print(try generate( ))
+        print("/********** end BIGMO DUMP ************/")
+    }
+}
+
+struct SmallMo:Codable{
+    let title: String
+    let refs: [AnchorInfo]
+    
+    func makeLinks(_ url: URL, _ filters:[String]) -> [AnchorInfo] {
+        var filteredlinks:[AnchorInfo]=[]
+        let nofilters = filters.count==0
+        for alink in refs {
+            let exta = alink.l.components(separatedBy: "/").last?.components(separatedBy: ".").last?.lowercased() ?? ""
+            let nulink = alink.l.hasPrefix(title) ? String(alink.l.dropFirst(title.count)) : alink.l
+          
+       
+                // even if no filters, require that an extension is present
+                if exta != "" {
+                    if nofilters { filteredlinks.append ( AnchorInfo(t:alink.t,
+                                                                     l:nulink,
+                                                                     o:filteredlinks.count+1))
+                        
+                    }
+                    else {
+                        // this is perhaps a little buggy and we should try to yse query parameters
+                        if  filters.contains(exta) {
+                            filteredlinks.append  ( AnchorInfo (t:alink.t,
+                                                                l:nulink,
+                                                                o:filteredlinks.count+1 ) )  }
+                    }
+                }
+        }
+       // guard filteredlinks.count != 0 else  { throw LinkGrubber.noLinks(title)}
+        return filteredlinks
+    }
+    
+}
+
+
 public extension Array where Element == String  {
     func includes(_ f:Element)->Bool {
         self.firstIndex(of: f) != nil
@@ -18,7 +96,6 @@ open class Transformer:NSObject {
     private var crawlblock = CrawlBlock()
     var firstTime = true
     
-    
     public required  init( recordExporter:RecordExporter,    lgFuncs:LgFuncProts, logLevel:LoggingLevel) {
         
         self.lgFuncs = lgFuncs
@@ -29,6 +106,10 @@ open class Transformer:NSObject {
     deinit  {
         recordExporter.addTrailerToExportStream()
         // print("[crawler] finalized csv and json streams")
+        //
+      
+        
+        
     }
     
     
@@ -41,11 +122,13 @@ open class Transformer:NSObject {
         for link in pr.links {
             if let linkref = link.href { // sometimes no href
             let href =  linkref.absoluteString //yikes
-            if !href.hasSuffix("/" ) {
+                let ext = linkref.pathExtension
+            if !href.hasSuffix("/" ) && ext != "" {
+                crawlblock.artist = "ABHD"
                 crawlblock.albumurl = url.absoluteString
                 crawlblock.name = link.title
                 crawlblock.songurl = href
-                crawlblock.cover_art_url = ""
+                crawlblock.track = "\(mdlinks.count + 1)"
                 mdlinks.append(Fav(name:crawlblock.name ?? "??", url:crawlblock.songurl,comment:""))
                 recordExporter.addRowToExportStream(cont: crawlblock)
             }
@@ -55,16 +138,16 @@ open class Transformer:NSObject {
         // if we are writing md files for Publish
         if let aurl = crawlblock.albumurl {
             // figure out the coverarturl here, either take the default for the bandsite or take the first one in the mdlinks
-            for alink in mdlinks {
-                let x =  alink.url.components(separatedBy: ".").last ?? "fail"
-                if lgFuncs.isImageExtensionFunc(x) {
-                    crawlblock.cover_art_url = alink.url
-                    break
-                }
-            }
+//            for alink in mdlinks {
+//                let x =  alink.url.components(separatedBy: ".").last ?? "fail"
+////                if lgFuncs.isImageExtensionFunc(x) {
+////                    crawlblock.track = alink.url
+////                    break
+////                }
+//            }
             
-            if crawlblock.cover_art_url == "" {
-                crawlblock.cover_art_url = imgurl
+            if crawlblock.track == "" {
+                crawlblock.track = "99"
             }
             
             let props = CustomPageProps(isInternalPage: false,

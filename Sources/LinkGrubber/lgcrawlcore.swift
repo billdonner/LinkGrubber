@@ -178,7 +178,7 @@ final class  CrawlBlock:Codable {
     var artist:String? = ""
     var albumurl:String? = ""
     var songurl:String = ""
-    var cover_art_url:String? = ""
+    var track:String? = ""
     var album : String?  {
         if let alurl = albumurl {
             let blurl = alurl.hasSuffix("/") ? String( alurl.dropLast()  ) : alurl
