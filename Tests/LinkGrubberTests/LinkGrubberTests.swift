@@ -37,7 +37,7 @@ private struct LgFuncs: LgFuncProts {
     
     override func setUp() {
         grubstats = nil
-        opath = "/Users/williamdonner/LocalScratch/aabonus"
+        opath = "/Users/williamdonner/LocalScratch/halfdead-master/"
     }
     
     // when finally done, check the crawler stats

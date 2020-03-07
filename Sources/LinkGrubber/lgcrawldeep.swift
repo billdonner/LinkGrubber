@@ -47,11 +47,12 @@ final class CrawlTable {
         return topurl
     }
     
-    func convertOpgToSmallMo(opg:OnePageGuts) -> SmallMo {
+    func convertOpgToSmallMo(opg:OnePageGuts) -> SmallMo? {
         var anchors:[AnchorInfo] = []
         for (idx,link) in opg.links.enumerated() {
             anchors.append(AnchorInfo(t:link.name,l:link.url,o:idx+1))
         }
+        if anchors.count == 0  { return  nil }
         // note we are using urlstr, not title, which just has the title of last song
         let m = SmallMo(title:opg.props.urlstr,refs: anchors)
         return m
@@ -75,8 +76,9 @@ final class CrawlTable {
                     // now publish the guts
                     if let opg = opg {
                         try lgFuncs.pageMakerFunc(opg.props,opg.links)
-                        let smallmo = convertOpgToSmallMo(opg: opg)
+                        if  let smallmo = convertOpgToSmallMo(opg: opg) {
                         allsmallmo.append(smallmo)
+                        }
                     }
                 }
                 catch {

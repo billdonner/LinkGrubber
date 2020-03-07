@@ -7,17 +7,8 @@ import Foundation
 
 //MARK:- a Xenerator is just the title and parsed links from a web page
 
-struct AnchorInfo:Codable {
-    let t:String
-    let l: String // not url, it might just be the path if he base_url is a prefix
-    let o:Int
-}
-struct BigMo: Codable {
-    let schema_version = "0.1.0"
-    let date_generated = "\(Date())"
-    let base_url:URL
-    let filters:[String]
-    let meetups:[SmallMo]
+
+extension BigMo {
     
     func generate( ) throws -> String {
         var perfs:[SmallMo] = []
@@ -48,9 +39,8 @@ struct BigMo: Codable {
     }
 }
 
-struct SmallMo:Codable{
-    let title: String
-    let refs: [AnchorInfo]
+
+extension SmallMo {
     
     func makeLinks(_ url: URL, _ filters:[String]) -> [AnchorInfo] {
         var filteredlinks:[AnchorInfo]=[]

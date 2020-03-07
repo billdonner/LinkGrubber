@@ -52,8 +52,8 @@ final public class LinkGrubber
         krawlStream = KrawlStream(roots:roots,
                              transformer:transformer,
                              lgFuncs: lgFuncs ,// transformerm
-            csvoutPath:  dir.appendingPathExtension(".csv"),
-            jsonoutPath:  dir.appendingPathExtension(".json"),
+            csvoutPath:  dir.appendingPathExtension("csv"),
+            jsonoutPath:  dir.appendingPathExtension("json"),
             logLevel: logLevel)// krawlstream
         guard let kstream = krawlStream else { fatalError("cant make krawlstream")}
         
